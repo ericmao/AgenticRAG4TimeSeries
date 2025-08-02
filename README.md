@@ -1,293 +1,164 @@
-# Agentic RAG System for Time-Series Analysis
+# Core Agentic RAG for CERT Anomaly Analysis
 
-## Overview
+## 專案概述
 
-This project implements an advanced Agentic RAG (Retrieval-Augmented Generation) system specifically designed for time-series analysis on the CERT Insider Threat dataset. The system combines multiple anomaly detection approaches with LangChain-based agentic workflows to identify potential insider threats.
+這是一個專注於核心 Agentic RAG 功能的專案，用於 CERT 內部威脅數據的異常分析。系統整合了多種異常檢測技術和 GPT-4o 語言模型來提供全面的安全分析。
 
-## Key Features
+## 核心功能
 
-### 🔍 **Dual Anomaly Detection**
-- **Markov Chain Model**: Uses K-means clustering to discretize embeddings into states, builds transition probability matrices, and detects anomalies through sequence likelihood analysis
-- **BERT-based Model**: Leverages pre-trained BERT transformers with autoencoder architecture for sequence-level anomaly detection
+### 🔍 多模態異常檢測
+- **Markov Chain 檢測器**: 分析用戶行為序列的模式轉換
+- **BERT 異常檢測器**: 基於文本序列的深度學習異常檢測
+- **向量存儲**: 用於相似行為搜索的語義檢索
 
-### 🧠 **Agentic Workflows**
-- LangChain-powered agent with 4 specialized tools:
-  - Time-series sequence retrieval
-  - Trend analysis with rolling statistics
-  - Markov Chain anomaly detection
-  - BERT-based anomaly detection
+### 🤖 GPT-4o 智能分析
+- **用戶行為分析**: 結合異常分數和行為特徵的綜合評估
+- **模式識別**: 識別潛在的內部威脅模式
+- **風險評估**: 提供詳細的風險等級和建議
 
-### 📊 **Time-Series Processing**
-- Comprehensive feature engineering (daily windows, rolling statistics, anomaly scores)
-- Event textualization for embedding generation
-- Vector similarity search using FAISS
+### 📊 數據處理
+- **CERT 數據集**: 處理真實的內部威脅數據
+- **特徵工程**: 自動提取時間序列特徵
+- **文本化處理**: 將事件轉換為可分析的文本序列
 
-## System Architecture
+## 快速開始
 
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Data Loading  │    │  Feature        │    │  Vector Store   │
-│   & Processing  │───▶│  Engineering    │───▶│  & Embeddings   │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                │                        │
-                                ▼                        ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│  LangChain      │    │  Markov Chain   │    │  BERT-based     │
-│  Agent          │◀───│  Anomaly        │    │  Anomaly        │
-│  (4 Tools)      │    │  Detector       │    │  Detector       │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-```
+### 1. 環境設置
 
-## Installation
-
-### Prerequisites
-- Python 3.8+
-- OpenAI API key
-- CUDA-compatible GPU (optional, for BERT acceleration)
-
-### Setup
-
-1. **Clone the repository**
 ```bash
-git clone <repository-url>
-cd AgenticRAG
-```
-
-2. **Install dependencies**
-```bash
+# 安裝依賴
 pip install -r requirements.txt
+
+# 設置 OpenAI API Key
+export OPENAI_API_KEY="your-api-key-here"
 ```
 
-3. **Set up environment variables**
-```bash
-cp env_example.txt .env
-```
-
-Edit `.env` file with your configuration:
-```env
-# OpenAI API Configuration
-OPENAI_API_KEY=your_openai_api_key_here
-
-# Model Configuration
-BERT_MODEL_NAME=bert-base-uncased
-SENTENCE_TRANSFORMER_MODEL=all-MiniLM-L6-v2
-
-# Anomaly Detection Parameters
-MARKOV_N_CLUSTERS=10
-BERT_MAX_LENGTH=512
-ANOMALY_THRESHOLD_MULTIPLIER=3.0
-
-# Data Configuration
-DATA_DIR=./data
-```
-
-4. **Prepare data directory** (optional)
-```bash
-mkdir data
-# Place CERT dataset CSV files (logon.csv, device.csv) in data/ directory
-```
-
-## Usage
-
-### Quick Start
-
-Run the main script to initialize and test the system:
+### 2. 運行核心分析
 
 ```bash
-python main.py
+# 運行核心 Agentic RAG 系統
+python scripts/main_agentic_rag_cert.py
 ```
 
-The system will:
-1. Load and process the CERT dataset (creates synthetic data if actual files not found)
-2. Engineer time-series features
-3. Build vector embeddings and index
-4. Train both anomaly detection models
-5. Run example analysis
-6. Enter interactive mode for queries
-
-### Interactive Mode
-
-Once initialized, you can interact with the system using natural language queries:
+## 專案結構
 
 ```
-Enter a query (or 'quit' to exit): Analyze potential insider threats for user USER0001 using both Markov chain and BERT-based anomaly detection
+AgenticRAG/
+├── scripts/
+│   ├── main_agentic_rag_cert.py   # 核心 Agentic RAG 系統
+│   └── main.py                    # 原始主腳本
+├── src/
+│   ├── core/                      # 核心組件
+│   │   ├── data_processor.py      # 數據處理器
+│   │   ├── vector_store.py        # 向量存儲
+│   │   ├── markov_anomaly_detector.py
+│   │   └── bert_anomaly_detector.py
+│   ├── utils/                     # 工具函數
+│   │   └── model_persistence.py   # 模型持久化
+│   └── agents/                    # 代理組件
+├── models/                        # 訓練好的模型
+├── data/                          # 數據文件
+└── docs/                          # 文檔
 ```
 
-### Example Queries
+## 核心功能詳解
 
-- `"Analyze user USER0001 for anomalies"`
-- `"Search for similar behavior patterns to unusual logon times"`
-- `"What are the trends in user USER0002's activity over the last week?"`
-- `"Compare Markov and BERT results for user USER0003"`
+### 異常檢測流程
 
-## System Components
+1. **數據預處理**
+   - 加載 CERT 內部威脅數據集
+   - 工程化時間序列特徵
+   - 文本化事件序列
 
-### 1. Data Processor (`data_processor.py`)
-- Loads and merges CERT dataset files
-- Performs time-series feature engineering
-- Textualizes events for embedding generation
-- Prepares BERT sequences
+2. **模型訓練/加載**
+   - 檢查現有訓練好的模型
+   - 如果沒有或過期，重新訓練
+   - 保存訓練好的模型
 
-### 2. Vector Store (`vector_store.py`)
-- Manages FAISS-based similarity search
-- Creates embeddings using Sentence Transformers
-- Handles both sequence and feature embeddings
+3. **異常分析**
+   - Markov Chain 分析用戶行為模式
+   - BERT 分析文本序列異常
+   - 結合分數進行綜合評估
 
-### 3. Markov Chain Detector (`markov_anomaly_detector.py`)
-- Discretizes embeddings using K-means clustering
-- Builds transition probability matrices
-- Detects anomalies through sequence likelihood analysis
-- Uses Isolation Forest for outlier detection
+4. **智能分析**
+   - GPT-4o 分析異常分數和行為特徵
+   - 生成風險評估和建議
+   - 提供詳細的安全分析報告
 
-### 4. BERT Anomaly Detector (`bert_anomaly_detector.py`)
-- Extracts features using pre-trained BERT
-- Implements autoencoder for reconstruction-based anomaly detection
-- Handles variable-length sequences
-- Provides detailed embedding analysis
+## 技術特點
 
-### 5. Agentic RAG Agent (`agentic_rag_agent.py`)
-- LangChain agent with 4 specialized tools
-- Handles natural language queries
-- Orchestrates multiple analysis methods
-- Provides comprehensive insights
+### 🔧 模型持久化
+- 自動檢查和加載現有模型
+- 智能決定是否需要重新訓練
+- 支持模型版本管理
 
-## Configuration
+### 🚀 性能優化
+- 向量化數據處理
+- 並行異常檢測
+- 高效的語義搜索
 
-### Model Parameters
+### 🛡️ 安全分析
+- 多維度異常檢測
+- 智能風險評估
+- 可解釋的分析結果
 
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `MARKOV_N_CLUSTERS` | 10 | Number of states for Markov Chain |
-| `BERT_MAX_LENGTH` | 512 | Maximum sequence length for BERT |
-| `ANOMALY_THRESHOLD_MULTIPLIER` | 3.0 | Threshold multiplier for anomaly detection |
+## 配置選項
 
-### Training Parameters
-
-- **Markov Chain**: Uses 80% of users for training, 20% for testing
-- **BERT Autoencoder**: 10 epochs, learning rate 1e-3, batch size 32
-- **Isolation Forest**: Contamination rate 0.1 (10% assumed anomalous)
-
-## Output Examples
-
-### Anomaly Detection Results
-
-```
-Markov Chain Anomaly Detection Results for User USER0001:
-
-Anomaly Detected: Yes
-Anomaly Score: -0.8234
-Sequence Likelihood: -12.4567
-Sequence Length: 45
-Unique States: 8
-
-Explanation: Anomaly detected in sequence with low likelihood (-12.4567). 
-Sequence length: 45, Unique transitions: 12. Very unusual transition patterns detected.
-
-BERT Anomaly Detection Results for User USER0001:
-
-Anomaly Detected: Yes
-Anomaly Score: -0.9123
-Reconstruction Error: 0.1567
-Embedding Norm: 2.345
-
-Explanation: Anomaly detected with high reconstruction error (0.1567). 
-Embedding norm: 2.345, Embedding sparsity: 0.234. 
-Very high reconstruction error indicates unusual sequence patterns.
-```
-
-### Trend Analysis
-
-```
-Trend Analysis for User USER0001 (Window: 7 days):
-
-Total Activities:
-  Current Value: 15.00
-  Rolling Mean: 12.34
-  Trend: 0.234 (increasing)
-
-Logon Count:
-  Current Value: 8.00
-  Rolling Mean: 6.78
-  Trend: 0.123 (increasing)
-```
-
-## Performance Considerations
-
-### Memory Usage
-- BERT model: ~500MB
-- FAISS index: ~100MB per 10K vectors
-- Sentence Transformers: ~100MB
-
-### Processing Time
-- Data processing: 2-5 minutes for 10K records
-- BERT training: 5-10 minutes (10 epochs)
-- Markov training: 1-2 minutes
-- Query processing: 1-5 seconds
-
-### GPU Acceleration
-- BERT model automatically uses GPU if available
-- Set `CUDA_VISIBLE_DEVICES` for multi-GPU setups
-- CPU fallback available for all components
-
-## Troubleshooting
-
-### Common Issues
-
-1. **OpenAI API Key Error**
-   ```
-   ERROR: OPENAI_API_KEY not found in environment variables.
-   ```
-   Solution: Set your OpenAI API key in the `.env` file
-
-2. **CUDA Out of Memory**
-   ```
-   RuntimeError: CUDA out of memory
-   ```
-   Solution: Reduce batch size or use CPU-only mode
-
-3. **FAISS Index Error**
-   ```
-   ValueError: Index not built. Call build_index() first.
-   ```
-   Solution: Ensure data processing completed successfully
-
-### Debug Mode
-
-Enable verbose logging:
+### 模型配置
 ```python
-import logging
-logging.basicConfig(level=logging.DEBUG)
+# 在腳本中修改
+use_existing, model_status = should_use_existing_models(
+    force_retrain=False,        # 是否強制重新訓練
+    max_model_age_days=30       # 模型最大年齡（天）
+)
 ```
 
-## Contributing
+### LLM 配置
+```python
+llm = ChatOpenAI(
+    model="gpt-4o",
+    temperature=0.1,            # 創造性 vs 一致性
+    max_tokens=1000            # 最大輸出長度
+)
+```
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+## 故障排除
 
-## License
+### 常見問題
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+1. **模型加載失敗**
+   - 檢查 `models/` 目錄是否存在
+   - 確認模型文件完整性
+   - 重新訓練模型
 
-## Acknowledgments
+2. **API Key 錯誤**
+   - 確認 OpenAI API Key 設置正確
+   - 檢查網絡連接
+   - 驗證 API 配額
 
-- CERT Insider Threat Dataset from Kaggle
-- LangChain for agentic workflows
-- Hugging Face Transformers for BERT implementation
-- FAISS for efficient similarity search
-- Sentence Transformers for embedding generation
+3. **數據處理錯誤**
+   - 確認 CERT 數據集路徑正確
+   - 檢查數據格式
+   - 驗證特徵工程步驟
 
-## Citation
+## 開發指南
 
-If you use this system in your research, please cite:
+### 添加新的異常檢測器
 
-```bibtex
-@software{agentic_rag_insider_threat,
-  title={Agentic RAG System for Time-Series Analysis on CERT Insider Threat Dataset},
-  author={Your Name},
-  year={2024},
-  url={https://github.com/your-repo/AgenticRAG}
-}
-``` 
+1. 創建新的檢測器類
+2. 實現 `fit()` 和 `detect_anomaly()` 方法
+3. 在 `initialize_agentic_rag_system()` 中集成
+
+### 擴展分析功能
+
+1. 修改 `analyze_user_anomalies()` 函數
+2. 添加新的分析維度
+3. 更新報告生成邏輯
+
+## 貢獻指南
+
+歡迎提交 Issue 和 Pull Request 來改進這個專案！
+
+## 授權
+
+本專案採用 MIT 授權條款。 
