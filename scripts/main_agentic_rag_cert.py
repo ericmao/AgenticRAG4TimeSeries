@@ -169,16 +169,21 @@ def initialize_agentic_rag_system():
             
             if hasattr(data_processor, 'user_sequences') and data_processor.user_sequences:
                 try:
-                    bert_features = []
-                    for user_id, sequence in data_processor.user_sequences.items():
-                        if isinstance(sequence, str) and len(sequence) > 0:
-                            bert_features.append(sequence)
+                    # Prepare BERT sequences in the correct format
+                    bert_sequences = data_processor.prepare_bert_sequences()
                     
-                    if bert_features:
-                        bert_detector.fit(bert_features)
-                        print("✅ BERT model trained successfully")
+                    if bert_sequences:
+                        # Extract BERT features
+                        bert_features = bert_detector.extract_bert_features(bert_sequences)
+                        
+                        if bert_features:
+                            # Fit the detector with extracted features
+                            bert_detector.fit(bert_features)
+                            print("✅ BERT model trained successfully")
+                        else:
+                            print("⚠️ No valid BERT features extracted")
                     else:
-                        print("⚠️ No valid BERT features available")
+                        print("⚠️ No valid BERT sequences available")
                 except Exception as e:
                     print(f"⚠️ BERT training failed: {e}")
                     bert_detector = None

@@ -63,6 +63,7 @@ class BertAnomalyDetector:
         self.scaler = StandardScaler()
         self.isolation_forest = None
         self.is_fitted = False
+        self.is_trained = False
         
         # Training parameters
         self.autoencoder_hidden_dim = 128
@@ -161,6 +162,7 @@ class BertAnomalyDetector:
         self._fit_isolation_forest(normal_users, user_embeddings)
         
         self.is_fitted = True
+        self.is_trained = True
         print("BERT autoencoder fitted successfully")
     
     def _train_autoencoder(self, embeddings: np.ndarray) -> None:
