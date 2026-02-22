@@ -70,6 +70,20 @@ def cmd_analyze(episode_path: str, hypothesis_path: Optional[str] = None) -> int
     return 1
 
 
+def cmd_writeback(episode_path: str, mode: str = "dry_run") -> int:
+    """Load episode, evidence, agent outputs; build writeback patch (dry_run); write outputs/writeback + decision bundle."""
+    from src.pipeline.writeback_pipeline import run_writeback
+    patch, writeback_path = run_writeback(episode_path, mode=mode)
+    root = _REPO_ROOT
+    print("writeback ok")
+    print(f"  episode_id={patch.episode_id}")
+    print(f"  mode={patch.mode}")
+    print(f"  stats={patch.stats}")
+    print(f"  output: {writeback_path.relative_to(root)}")
+    print(f"  decision_bundle: outputs/audit/decision_bundle_{patch.episode_id}.json")
+    return 0
+
+
 def cmd_retrieve(episode_path: str, hypothesis_path: Optional[str] = None) -> int:
     """Run C1 retrieval: build EvidenceSet from episode (and optional hypothesis), write outputs/evidence/<episode_id>.json."""
     from src.pipeline.retrieve_evidence import build_evidence_set
@@ -92,6 +106,9 @@ def main() -> int:
     ana_p = sub.add_parser("analyze", help="Run C2 agents on episode (+ evidence; run retrieve if needed)")
     ana_p.add_argument("--episode", required=True, help="Path to episode JSON")
     ana_p.add_argument("--hypothesis", default=None, help="Optional path to hypothesis JSON")
+    wb_p = sub.add_parser("writeback", help="C3 writeback: build patch (dry_run), write outputs/writeback + decision bundle")
+    wb_p.add_argument("--episode", required=True, help="Path to episode JSON")
+    wb_p.add_argument("--mode", default="dry_run", choices=["dry_run", "review", "auto"], help="Writeback mode")
     args = p.parse_args()
     if args.cmd == "validate":
         return cmd_validate()
@@ -99,6 +116,8 @@ def main() -> int:
         return cmd_retrieve(args.episode, args.hypothesis)
     if args.cmd == "analyze":
         return cmd_analyze(args.episode, args.hypothesis)
+    if args.cmd == "writeback":
+        return cmd_writeback(args.episode, mode=getattr(args, "mode", "dry_run"))
     return 0
 
 
