@@ -67,6 +67,8 @@ data/
 *.json
 !tests/samples/
 !tests/samples/*.json
+!tests/samples/episodes/
+!tests/samples/episodes/*.json
 *.pkl
 *.pickle
 

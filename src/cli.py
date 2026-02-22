@@ -84,6 +84,17 @@ def cmd_writeback(episode_path: str, mode: str = "dry_run") -> int:
     return 0
 
 
+def cmd_eval(episodes_dir: str, limit: int = 20) -> int:
+    """Batch-run episodes, write metrics.csv, summary.json, report.md to outputs/eval/."""
+    from src.eval.run_eval import run_eval
+    eval_dir = run_eval(episodes_dir, limit=limit)
+    print("eval ok")
+    print(f"  episodes_dir={episodes_dir}")
+    print(f"  limit={limit}")
+    print(f"  outputs: {eval_dir / 'metrics.csv'}, {eval_dir / 'summary.json'}, {eval_dir / 'report.md'}")
+    return 0
+
+
 def cmd_retrieve(episode_path: str, hypothesis_path: Optional[str] = None) -> int:
     """Run C1 retrieval: build EvidenceSet from episode (and optional hypothesis), write outputs/evidence/<episode_id>.json."""
     from src.pipeline.retrieve_evidence import build_evidence_set
@@ -109,6 +120,9 @@ def main() -> int:
     wb_p = sub.add_parser("writeback", help="C3 writeback: build patch (dry_run), write outputs/writeback + decision bundle")
     wb_p.add_argument("--episode", required=True, help="Path to episode JSON")
     wb_p.add_argument("--mode", default="dry_run", choices=["dry_run", "review", "auto"], help="Writeback mode")
+    ev_p = sub.add_parser("eval", help="Batch eval: run episodes, write metrics.csv, summary.json, report.md")
+    ev_p.add_argument("--episodes_dir", default="tests/samples/episodes", help="Directory of episode JSONs")
+    ev_p.add_argument("--limit", type=int, default=20, help="Max episodes to run")
     args = p.parse_args()
     if args.cmd == "validate":
         return cmd_validate()
@@ -118,6 +132,8 @@ def main() -> int:
         return cmd_analyze(args.episode, args.hypothesis)
     if args.cmd == "writeback":
         return cmd_writeback(args.episode, mode=getattr(args, "mode", "dry_run"))
+    if args.cmd == "eval":
+        return cmd_eval(getattr(args, "episodes_dir", "tests/samples/episodes"), getattr(args, "limit", 20))
     return 0
 
 
