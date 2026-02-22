@@ -26,14 +26,17 @@ def run_all_agents(
     episode: Episode,
     evidence_set: EvidenceSet,
     trust_signals: Optional[dict[str, Any]] = None,
+    repair_hint: Optional[str] = None,
+    write_outputs: bool = True,
 ) -> dict[str, AgentOutput]:
     """
-    Run triage, hunt_planner, response_advisor. Write each output to outputs/agents/<episode_id>_<agent_id>.json.
-    Audit-log start/end with latency_ms. Returns dict agent_id -> AgentOutput (validated).
+    Run triage, hunt_planner, response_advisor. If write_outputs, write to outputs/agents/<episode_id>_<agent_id>.json.
+    Audit-log start/end with latency_ms. Returns dict agent_id -> AgentOutput.
     """
     root = _repo_root()
     out_dir = root / "outputs" / "agents"
-    out_dir.mkdir(parents=True, exist_ok=True)
+    if write_outputs:
+        out_dir.mkdir(parents=True, exist_ok=True)
     run_id = episode.run_id
     episode_id = episode.episode_id
 
@@ -51,15 +54,14 @@ def run_all_agents(
     for agent_id, run_fn in runners:
         t0 = time.perf_counter()
         audit_log(
-            event={"action": "agent_start", "agent_id": agent_id},
+            event={"action": "agent_start", "agent_id": agent_id, "repair_hint": bool(repair_hint)},
             run_id=run_id,
             episode_id=episode_id,
             component="pipeline.run_agents",
             prompt_version=prompt_version,
         )
-        out = run_fn(episode, evidence_set, trust_signals)
+        out = run_fn(episode, evidence_set, trust_signals, repair_hint=repair_hint)
         latency_ms = int((time.perf_counter() - t0) * 1000)
-        # Validate
         AgentOutput.model_validate(out.model_dump())
         if len(out.citations) < 3:
             raise ValueError(f"Agent {agent_id} must have >= 3 citations, got {len(out.citations)}")
@@ -71,7 +73,8 @@ def run_all_agents(
             component="pipeline.run_agents",
             prompt_version=prompt_version,
         )
-        path = out_dir / f"{episode_id}_{agent_id}.json"
-        path.write_text(out.model_dump_json(indent=2), encoding="utf-8")
+        if write_outputs:
+            path = out_dir / f"{episode_id}_{agent_id}.json"
+            path.write_text(out.model_dump_json(indent=2), encoding="utf-8")
 
     return outputs

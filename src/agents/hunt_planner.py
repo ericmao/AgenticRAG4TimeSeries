@@ -17,6 +17,7 @@ def run_hunt_planner(
     episode: Episode,
     evidence_set: EvidenceSet,
     trust_signals: Optional[dict[str, Any]] = None,
+    repair_hint: Optional[str] = None,
 ) -> AgentOutput:
     """Evidence-only hunt plan. structured: queries (by type), pivots (entities, artifacts), expected_findings. >= 3 citations."""
     context = format_evidence_context(evidence_set)

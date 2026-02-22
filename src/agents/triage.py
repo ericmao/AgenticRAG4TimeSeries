@@ -16,6 +16,7 @@ def run_triage(
     episode: Episode,
     evidence_set: EvidenceSet,
     trust_signals: Optional[dict[str, Any]] = None,
+    repair_hint: Optional[str] = None,
 ) -> AgentOutput:
     """Evidence-only triage. structured: triage_level, why_now, top_evidence, key_risks. >= 3 citations."""
     context = format_evidence_context(evidence_set)

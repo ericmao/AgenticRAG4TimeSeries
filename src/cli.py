@@ -38,13 +38,13 @@ def cmd_validate() -> int:
 
 
 def cmd_analyze(episode_path: str, hypothesis_path: Optional[str] = None) -> int:
-    """Load episode, load or run retrieve for evidence, run all agents, validate outputs (fail fast)."""
+    """Ensure evidence exists, run agents, validate+repair; write outputs/agents/ only when validated."""
     import json
     from pathlib import Path
     from src.contracts.episode import Episode
     from src.contracts.evidence import EvidenceSet
     from src.pipeline.retrieve_evidence import build_evidence_set
-    from src.pipeline.run_agents import run_all_agents
+    from src.pipeline.validate_and_repair import run_analyze_with_validation
 
     root = _REPO_ROOT
     ep_path = Path(episode_path)
@@ -56,13 +56,18 @@ def cmd_analyze(episode_path: str, hypothesis_path: Optional[str] = None) -> int
     if not evidence_path.exists():
         build_evidence_set(episode_path, hypothesis_path)
     evidence_set = EvidenceSet.model_validate(json.loads(evidence_path.read_text(encoding="utf-8")))
-    outputs = run_all_agents(episode, evidence_set, trust_signals=None)
-    print("analyze ok")
+    outputs, status = run_analyze_with_validation(episode, evidence_set, trust_signals=None)
+    if status == "ok":
+        print("analyze ok")
+        print(f"  episode_id={episode_id}")
+        for aid, out in outputs.items():
+            print(f"  {aid}: citations={len(out.citations)} confidence={out.confidence:.2f}")
+        print(f"  outputs: outputs/agents/{episode_id}_<agent>.json")
+        return 0
+    print("analyze failed (validation)")
     print(f"  episode_id={episode_id}")
-    for aid, out in outputs.items():
-        print(f"  {aid}: citations={len(out.citations)} confidence={out.confidence:.2f}")
-    print(f"  outputs: outputs/agents/{episode_id}_<agent>.json")
-    return 0
+    print(f"  issues: outputs/issues/{episode_id}.json")
+    return 1
 
 
 def cmd_retrieve(episode_path: str, hypothesis_path: Optional[str] = None) -> int:

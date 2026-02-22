@@ -13,12 +13,22 @@ from src.contracts.evidence import EvidenceSet
 from src.agents.common import PROMPT_VERSION, format_evidence_context
 
 
+def _specific_targets(episode: Episode) -> str:
+    """Build a specific target string from episode.entities and artifact values (no vague phrases)."""
+    parts = list(episode.entities or [])
+    for a in episode.artifacts or []:
+        if isinstance(a, dict) and a.get("value"):
+            parts.append(str(a["value"]).strip())
+    return ",".join(parts) if parts else "episode-entities"
+
+
 def run_response_advisor(
     episode: Episode,
     evidence_set: EvidenceSet,
     trust_signals: Optional[dict[str, Any]] = None,
+    repair_hint: Optional[str] = None,
 ) -> AgentOutput:
-    """Evidence-only response plan. structured: actions (action, target, duration_minutes, guardrails, rollback_conditions), expected_impact. Conservative if confidence < 0.6."""
+    """Evidence-only response plan. When repair_hint is set, use only specific targets (entities/artifacts). Conservative if confidence < 0.6."""
     context = format_evidence_context(evidence_set)
     items = evidence_set.items
     top = items[: max(3, min(5, len(items)))] if items else []
@@ -34,18 +44,19 @@ def run_response_advisor(
         confidence = min(0.75, confidence + 0.1)
     conservative = confidence < 0.6
 
+    specific_target = _specific_targets(episode)
     actions: list[dict[str, Any]] = []
     if conservative:
         actions.append({
             "action": "collect_more_data",
-            "target": "episode entities and artifacts",
+            "target": specific_target,
             "duration_minutes": None,
             "guardrails": "Do not block or isolate until triage confirms; use evidence to scope collection.",
             "rollback_conditions": ["If triage downgrades to noise, cancel collection."],
         })
         actions.append({
             "action": "watchlist",
-            "target": ",".join(episode.entities or ["entities in episode"]),
+            "target": specific_target,
             "duration_minutes": 60,
             "guardrails": "Monitor only; no blocking.",
             "rollback_conditions": ["Remove from watchlist when hypothesis is refuted or contained."],
@@ -53,17 +64,18 @@ def run_response_advisor(
     else:
         actions.append({
             "action": "watchlist",
-            "target": ",".join(episode.entities or ["entities in episode"]),
+            "target": specific_target,
             "duration_minutes": 120,
             "guardrails": "Escalate to isolate if lateral or exfil confirmed.",
             "rollback_conditions": ["Revert if false positive reported or evidence does not support."],
         })
         if "exfil" in tags or "lateral" in tags:
+            # Use specific target (never vague "affected hosts if confirmed") so policy guardrails pass
             actions.append({
                 "action": "isolate",
-                "target": "affected hosts if confirmed",
+                "target": specific_target,
                 "duration_minutes": None,
-                "guardrails": "Only after triage critical and hunt findings support.",
+                "guardrails": "Only after triage critical and hunt findings support; apply to listed entities/hosts only.",
                 "rollback_conditions": ["Restore network when incident closed or false positive."],
             })
 
