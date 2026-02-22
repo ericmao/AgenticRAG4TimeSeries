@@ -25,6 +25,9 @@ def cmd_validate() -> int:
         component="cli",
         prompt_version=cfg.PROMPT_VERSION,
     )
+    # Export Layer C JSON schemas and validate sample episode
+    from src.contracts.export_schema import run as export_schemas_run
+    export_schemas_run()
     print("validate ok")
     print(f"  run_id={run_id}")
     print(f"  RUN_MODE={cfg.RUN_MODE}")

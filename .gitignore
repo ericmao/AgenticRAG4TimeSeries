@@ -65,6 +65,8 @@ outputs/
 data/
 *.csv
 *.json
+!tests/samples/
+!tests/samples/*.json
 *.pkl
 *.pickle
 
