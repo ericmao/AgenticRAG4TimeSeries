@@ -14,8 +14,7 @@ from langchain.schema import BaseMessage, HumanMessage
 import json
 from datetime import datetime
 
-# Set up environment
-os.environ['OPENAI_API_KEY'] = "your_openai_api_key_here"
+# API key must be set via environment (e.g. .env from env.example); never hard-code.
 
 class SimpleAnalysisTool(BaseTool):
     """Simple analysis tool that avoids complex Pydantic structures."""

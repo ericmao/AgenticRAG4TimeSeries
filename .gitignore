@@ -60,7 +60,8 @@ Thumbs.db
 # Logs
 *.log
 
-# Data files (large files)
+# Outputs and data
+outputs/
 data/
 *.csv
 *.json

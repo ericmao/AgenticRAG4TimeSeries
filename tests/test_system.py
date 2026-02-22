@@ -213,16 +213,11 @@ def main():
     # Load environment
     load_dotenv()
     
-    # Set up environment variables if not already set
-    if not os.getenv('OPENAI_API_KEY'):
-        os.environ['OPENAI_API_KEY'] = "your_openai_api_key_here"
-        print("✅ OpenAI API key configured automatically")
-    
-    # Check for OpenAI API key
+    # Check for OpenAI API key (never set fake keys in repo)
     api_key = os.getenv('OPENAI_API_KEY')
     if not api_key:
-        print("⚠ Warning: OPENAI_API_KEY not found. Agent functionality will be limited.")
-        print("Set your API key in .env file for full functionality.")
+        print("⚠ Warning: OPENAI_API_KEY not set. Agent functionality will be limited.")
+        print("Copy env.example to .env and set OPENAI_API_KEY for full functionality.")
     
     # Run integration test
     success = test_integration()

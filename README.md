@@ -29,8 +29,8 @@
 # 安裝依賴
 pip install -r requirements.txt
 
-# 設置 OpenAI API Key
-export OPENAI_API_KEY="your-api-key-here"
+# 複製 env.example 為 .env 並填入變數（勿提交 .env）
+# 例如：OPENAI_API_KEY=<your-key> 等，見 env.example
 ```
 
 ### 2. 運行核心分析

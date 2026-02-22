@@ -7,24 +7,31 @@ import os
 import sys
 
 def setup_environment():
-    """Set up the environment variables for the Agentic RAG system."""
-    
-    # API Key configuration (replace with your own key)
-    api_key = "your_openai_api_key_here"
-    
-    # Set environment variables
-    os.environ['OPENAI_API_KEY'] = api_key
-    os.environ['BERT_MODEL_NAME'] = 'bert-base-uncased'
-    os.environ['SENTENCE_TRANSFORMER_MODEL'] = 'all-MiniLM-L6-v2'
-    os.environ['MARKOV_N_CLUSTERS'] = '10'
-    os.environ['BERT_MAX_LENGTH'] = '512'
-    os.environ['ANOMALY_THRESHOLD_MULTIPLIER'] = '3.0'
-    os.environ['DATA_DIR'] = './data'
-    
-    print("✅ Environment configured successfully!")
-    print(f"✅ OpenAI API Key: {api_key[:20]}...{api_key[-10:]}")
-    print("✅ All environment variables set")
-    
+    """Load env from .env (copy from env.example) and set defaults for optional vars."""
+    from pathlib import Path
+    env_path = Path(__file__).resolve().parents[1] / ".env"
+    if env_path.exists():
+        with open(env_path) as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    k, _, v = line.partition("=")
+                    k, v = k.strip(), v.strip().strip("'\"")
+                    if k and v and k not in os.environ:
+                        os.environ[k] = v
+    # Optional defaults (do not set secrets)
+    os.environ.setdefault('BERT_MODEL_NAME', 'bert-base-uncased')
+    os.environ.setdefault('SENTENCE_TRANSFORMER_MODEL', 'all-MiniLM-L6-v2')
+    os.environ.setdefault('MARKOV_N_CLUSTERS', '10')
+    os.environ.setdefault('BERT_MAX_LENGTH', '512')
+    os.environ.setdefault('ANOMALY_THRESHOLD_MULTIPLIER', '3.0')
+    os.environ.setdefault('DATA_DIR', './data')
+    print("✅ Environment loaded from .env (if present) and defaults set.")
+    if os.environ.get('OPENAI_API_KEY'):
+        v = os.environ['OPENAI_API_KEY']
+        print(f"✅ OPENAI_API_KEY: {v[:8]}...{v[-4:] if len(v) > 12 else '(set)'}")
+    else:
+        print("⚠ OPENAI_API_KEY not set. Copy env.example to .env and fill in.")
     return True
 
 def test_environment():
