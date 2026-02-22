@@ -95,6 +95,20 @@ def cmd_eval(episodes_dir: str, limit: int = 20) -> int:
     return 0
 
 
+def cmd_demo_report(episode_path: str) -> int:
+    """Generate outputs/demo/demo_report.md from episode and optional outputs artifacts."""
+    from src.pipeline.demo_report import generate_demo_report
+    report_path = generate_demo_report(episode_path)
+    root = _REPO_ROOT
+    try:
+        rel = report_path.relative_to(root)
+    except ValueError:
+        rel = report_path
+    print("demo_report ok")
+    print(f"  report: {rel}")
+    return 0
+
+
 def cmd_retrieve(episode_path: str, hypothesis_path: Optional[str] = None) -> int:
     """Run C1 retrieval: build EvidenceSet from episode (and optional hypothesis), write outputs/evidence/<episode_id>.json."""
     from src.pipeline.retrieve_evidence import build_evidence_set
@@ -123,6 +137,8 @@ def main() -> int:
     ev_p = sub.add_parser("eval", help="Batch eval: run episodes, write metrics.csv, summary.json, report.md")
     ev_p.add_argument("--episodes_dir", default="tests/samples/episodes", help="Directory of episode JSONs")
     ev_p.add_argument("--limit", type=int, default=20, help="Max episodes to run")
+    demo_p = sub.add_parser("demo_report", help="Generate end-to-end demo report (outputs/demo/demo_report.md)")
+    demo_p.add_argument("--episode", required=True, help="Path to episode JSON")
     args = p.parse_args()
     if args.cmd == "validate":
         return cmd_validate()
@@ -134,6 +150,8 @@ def main() -> int:
         return cmd_writeback(args.episode, mode=getattr(args, "mode", "dry_run"))
     if args.cmd == "eval":
         return cmd_eval(getattr(args, "episodes_dir", "tests/samples/episodes"), getattr(args, "limit", 20))
+    if args.cmd == "demo_report":
+        return cmd_demo_report(args.episode)
     return 0
 
 

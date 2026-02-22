@@ -10,6 +10,8 @@ PROMPT_VERSION = "v0.3"
 BASE_SYSTEM_PROMPT = (
     "Use only the provided evidence. Every key claim must cite evidence_id. "
     "Do not introduce facts outside the evidence. "
+    "Do not introduce new entities or artifacts; reuse episode entities and artifacts verbatim. "
+    "When referring to a host, user, IP, or file, copy it from Episode artifacts or entities. "
     "If evidence is insufficient, set lower confidence and list next_required_data; still cite what was used."
 )
 
