@@ -40,6 +40,24 @@ pip install -r requirements.txt
 python scripts/main_agentic_rag_cert.py
 ```
 
+### 3. Docker Compose（可選）
+
+專案提供 `Dockerfile` 與 `docker-compose.yml`，可在容器內執行 CLI。
+
+```bash
+# 複製 env 並填寫（容器會讀取 .env）
+cp env.example .env
+
+# 建置並執行預設指令（validate）
+docker compose run --rm app
+
+# 範例：retrieve、high-risk demo
+docker compose run --rm app python -m src.cli retrieve --episode tests/demo/episode_insider_highrisk.json
+docker compose run --rm app bash scripts/run_highrisk_demo.sh
+```
+
+`outputs/`、`kb/`、`data/` 以 volume 掛載，結果會寫回本機。
+
 ## 專案結構
 
 ```
@@ -158,6 +176,16 @@ llm = ChatOpenAI(
 ## 貢獻指南
 
 歡迎提交 Issue 和 Pull Request 來改進這個專案！
+
+## High-Risk Insider Demo
+
+One-command Layer C demo: generate a high-risk insider episode (lateral + burst + device churn), run retrieve → analyze → writeback → eval → demo report.
+
+```bash
+bash scripts/run_highrisk_demo.sh
+```
+
+Produces: `outputs/evidence/`, `outputs/agents/`, `outputs/writeback/`, `outputs/eval/metrics.csv`, `outputs/demo/demo_report.md`. Episode ID: `cert-USER0420-highrisk`.
 
 ## 授權
 

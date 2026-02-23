@@ -109,6 +109,29 @@ def cmd_demo_report(episode_path: str) -> int:
     return 0
 
 
+def cmd_cert2episodes(
+    data_dir: str = "data",
+    out_dir: str = "outputs/episodes/cert",
+    window_days: int = 7,
+    run_id: str = "cert-run-1",
+) -> int:
+    """Build Episode JSONs from CERT (or synthetic) data; write to out_dir."""
+    from src.pipeline.cert_to_episodes import run_cert_to_episodes
+
+    episodes, out_path, count_written = run_cert_to_episodes(
+        data_dir=data_dir,
+        out_dir=out_dir,
+        window_days=window_days,
+        run_id=run_id,
+    )
+    print("cert2episodes ok")
+    print(f"  count_written={count_written}")
+    print(f"  path={out_path}")
+    first_3 = [ep.episode_id for ep in episodes[:3]]
+    print(f"  first_3_episode_ids={first_3}")
+    return 0
+
+
 def cmd_retrieve(episode_path: str, hypothesis_path: Optional[str] = None) -> int:
     """Run C1 retrieval: build EvidenceSet from episode (and optional hypothesis), write outputs/evidence/<episode_id>.json."""
     from src.pipeline.retrieve_evidence import build_evidence_set
@@ -137,6 +160,11 @@ def main() -> int:
     ev_p = sub.add_parser("eval", help="Batch eval: run episodes, write metrics.csv, summary.json, report.md")
     ev_p.add_argument("--episodes_dir", default="tests/samples/episodes", help="Directory of episode JSONs")
     ev_p.add_argument("--limit", type=int, default=20, help="Max episodes to run")
+    c2e_p = sub.add_parser("cert2episodes", help="CERT → Episodes: build episode JSONs from logon/device (or synthetic)")
+    c2e_p.add_argument("--data_dir", default="data", help="CERT data directory (logon.csv, device.csv)")
+    c2e_p.add_argument("--out_dir", default="outputs/episodes/cert", help="Output directory for episode JSONs")
+    c2e_p.add_argument("--window_days", type=int, default=7, help="Time window in days per episode")
+    c2e_p.add_argument("--run_id", default="cert-run-1", help="Run ID for generated episodes")
     demo_p = sub.add_parser("demo_report", help="Generate end-to-end demo report (outputs/demo/demo_report.md)")
     demo_p.add_argument("--episode", required=True, help="Path to episode JSON")
     args = p.parse_args()
@@ -150,6 +178,13 @@ def main() -> int:
         return cmd_writeback(args.episode, mode=getattr(args, "mode", "dry_run"))
     if args.cmd == "eval":
         return cmd_eval(getattr(args, "episodes_dir", "tests/samples/episodes"), getattr(args, "limit", 20))
+    if args.cmd == "cert2episodes":
+        return cmd_cert2episodes(
+            data_dir=getattr(args, "data_dir", "data"),
+            out_dir=getattr(args, "out_dir", "outputs/episodes/cert"),
+            window_days=getattr(args, "window_days", 7),
+            run_id=getattr(args, "run_id", "cert-run-1"),
+        )
     if args.cmd == "demo_report":
         return cmd_demo_report(args.episode)
     return 0

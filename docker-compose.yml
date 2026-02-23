@@ -1,0 +1,18 @@
+# AgenticRAG4TimeSeries - single service; mount repo so outputs persist.
+# Usage:
+#   docker compose run --rm app python -m src.cli validate
+#   docker compose run --rm app python -m src.cli retrieve --episode tests/demo/episode_insider_highrisk.json
+#   docker compose run --rm app bash scripts/run_highrisk_demo.sh  # if python3 is available as python
+services:
+  app:
+    build: .
+    env_file: .env
+    volumes:
+      # Persist outputs (evidence, agents, writeback, eval, demo)
+      - ./outputs:/app/outputs
+      # Optional: override kb or data from host
+      - ./kb:/app/kb
+      - ./data:/app/data
+    working_dir: /app
+    # Override CMD when running: e.g. docker compose run --rm app python -m src.cli cert2episodes
+    command: ["python", "-m", "src.cli", "validate"]
