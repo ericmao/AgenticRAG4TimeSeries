@@ -1,0 +1,19 @@
+# Layer B inference worker (CPU or GPU with nvidia runtime)
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install deps (no torch by default to keep image small; add torch for GPU)
+ARG INSTALL_TORCH=0
+RUN if [ "$INSTALL_TORCH" = "1" ]; then pip install --no-cache-dir torch; fi
+
+COPY requirements.txt* ./
+RUN pip install --no-cache-dir pydantic python-dotenv \
+  && ([ -f requirements.txt ] && pip install --no-cache-dir -r requirements.txt || true)
+
+COPY . .
+ENV PYTHONPATH=/app
+
+# Default: run worker (poll jobs from /app/jobs)
+ENV JOBS_DIR=/app/jobs
+CMD ["python", "scripts/run_layer_b_worker.py", "--jobs-dir", "/app/jobs"]
