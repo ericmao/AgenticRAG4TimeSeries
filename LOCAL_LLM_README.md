@@ -167,10 +167,11 @@ USE_4BIT_QUANTIZATION=true
 ```python
 from langchain_openai import ChatOpenAI
 
+import os
 llm = ChatOpenAI(
     model="gpt-3.5-turbo",
     temperature=0.1,
-    openai_api_key="your_key"
+    openai_api_key=os.environ.get("OPENAI_API_KEY")  # set in .env from env.example
 )
 ```
 

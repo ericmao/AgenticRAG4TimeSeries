@@ -1,0 +1,19 @@
+# Do not copy into image
+.env
+.git
+.gitignore
+.cursor
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+.mypy_cache
+*.egg-info
+.venv
+venv
+env
+# Persisted at runtime via volume
+outputs/
+# Optional: keep image smaller; mount at run if needed
+# data/
+# kb/

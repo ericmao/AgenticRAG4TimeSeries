@@ -1,0 +1,1011 @@
+{
+  "episode_id": "cert-USER0420-highrisk",
+  "run_id": "cert-run-hr-1",
+  "t0_ms": 1771754000000,
+  "t1_ms": 1771757600000,
+  "entities": [
+    "USER0420",
+    "PC010",
+    "PC011",
+    "PC012",
+    "PC013"
+  ],
+  "artifacts": [
+    {
+      "type": "user",
+      "value": "USER0420"
+    },
+    {
+      "type": "host",
+      "value": "PC010"
+    },
+    {
+      "type": "host",
+      "value": "PC011"
+    },
+    {
+      "type": "host",
+      "value": "PC012"
+    },
+    {
+      "type": "host",
+      "value": "PC013"
+    }
+  ],
+  "sequence_tags": [
+    "logon",
+    "device",
+    "lateral",
+    "burst"
+  ],
+  "events": [
+    {
+      "ts_ms": 1771754000000,
+      "entity": "USER0420",
+      "action": "logon",
+      "artifact": {
+        "host": "PC010"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771754060000,
+      "entity": "USER0420",
+      "action": "logon",
+      "artifact": {
+        "host": "PC011"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771754120000,
+      "entity": "USER0420",
+      "action": "logon",
+      "artifact": {
+        "host": "PC012"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771754180000,
+      "entity": "USER0420",
+      "action": "logon",
+      "artifact": {
+        "host": "PC013"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771754250000,
+      "entity": "USER0420",
+      "action": "connect",
+      "artifact": {
+        "host": "PC010"
+      },
+      "source": "device",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771754255000,
+      "entity": "USER0420",
+      "action": "disconnect",
+      "artifact": {
+        "host": "PC010"
+      },
+      "source": "device",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771754260000,
+      "entity": "USER0420",
+      "action": "connect",
+      "artifact": {
+        "host": "PC011"
+      },
+      "source": "device",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771754265000,
+      "entity": "USER0420",
+      "action": "disconnect",
+      "artifact": {
+        "host": "PC011"
+      },
+      "source": "device",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771754270000,
+      "entity": "USER0420",
+      "action": "connect",
+      "artifact": {
+        "host": "PC012"
+      },
+      "source": "device",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771754275000,
+      "entity": "USER0420",
+      "action": "disconnect",
+      "artifact": {
+        "host": "PC012"
+      },
+      "source": "device",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771754280000,
+      "entity": "USER0420",
+      "action": "connect",
+      "artifact": {
+        "host": "PC013"
+      },
+      "source": "device",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771754285000,
+      "entity": "USER0420",
+      "action": "disconnect",
+      "artifact": {
+        "host": "PC013"
+      },
+      "source": "device",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771754290000,
+      "entity": "USER0420",
+      "action": "connect",
+      "artifact": {
+        "host": "PC010"
+      },
+      "source": "device",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771754295000,
+      "entity": "USER0420",
+      "action": "disconnect",
+      "artifact": {
+        "host": "PC010"
+      },
+      "source": "device",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771754300000,
+      "entity": "USER0420",
+      "action": "connect",
+      "artifact": {
+        "host": "PC011"
+      },
+      "source": "device",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771754305000,
+      "entity": "USER0420",
+      "action": "disconnect",
+      "artifact": {
+        "host": "PC011"
+      },
+      "source": "device",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771754310000,
+      "entity": "USER0420",
+      "action": "connect",
+      "artifact": {
+        "host": "PC012"
+      },
+      "source": "device",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771754315000,
+      "entity": "USER0420",
+      "action": "disconnect",
+      "artifact": {
+        "host": "PC012"
+      },
+      "source": "device",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771754320000,
+      "entity": "USER0420",
+      "action": "connect",
+      "artifact": {
+        "host": "PC013"
+      },
+      "source": "device",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771754325000,
+      "entity": "USER0420",
+      "action": "disconnect",
+      "artifact": {
+        "host": "PC013"
+      },
+      "source": "device",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771754330000,
+      "entity": "USER0420",
+      "action": "connect",
+      "artifact": {
+        "host": "PC010"
+      },
+      "source": "device",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771754335000,
+      "entity": "USER0420",
+      "action": "disconnect",
+      "artifact": {
+        "host": "PC010"
+      },
+      "source": "device",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771754340000,
+      "entity": "USER0420",
+      "action": "connect",
+      "artifact": {
+        "host": "PC011"
+      },
+      "source": "device",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771754345000,
+      "entity": "USER0420",
+      "action": "disconnect",
+      "artifact": {
+        "host": "PC011"
+      },
+      "source": "device",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771754350000,
+      "entity": "USER0420",
+      "action": "connect",
+      "artifact": {
+        "host": "PC012"
+      },
+      "source": "device",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771754355000,
+      "entity": "USER0420",
+      "action": "disconnect",
+      "artifact": {
+        "host": "PC012"
+      },
+      "source": "device",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771754360000,
+      "entity": "USER0420",
+      "action": "connect",
+      "artifact": {
+        "host": "PC013"
+      },
+      "source": "device",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771754365000,
+      "entity": "USER0420",
+      "action": "disconnect",
+      "artifact": {
+        "host": "PC013"
+      },
+      "source": "device",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771755800000,
+      "entity": "USER0420",
+      "action": "logon",
+      "artifact": {
+        "host": "PC010"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771755829999,
+      "entity": "USER0420",
+      "action": "logoff",
+      "artifact": {
+        "host": "PC011"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771755859998,
+      "entity": "USER0420",
+      "action": "logon",
+      "artifact": {
+        "host": "PC012"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771755889997,
+      "entity": "USER0420",
+      "action": "logoff",
+      "artifact": {
+        "host": "PC013"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771755919996,
+      "entity": "USER0420",
+      "action": "logon",
+      "artifact": {
+        "host": "PC010"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771755949995,
+      "entity": "USER0420",
+      "action": "logoff",
+      "artifact": {
+        "host": "PC011"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771755979994,
+      "entity": "USER0420",
+      "action": "logon",
+      "artifact": {
+        "host": "PC012"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771756009993,
+      "entity": "USER0420",
+      "action": "logoff",
+      "artifact": {
+        "host": "PC013"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771756039992,
+      "entity": "USER0420",
+      "action": "logon",
+      "artifact": {
+        "host": "PC010"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771756069991,
+      "entity": "USER0420",
+      "action": "logoff",
+      "artifact": {
+        "host": "PC011"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771756099990,
+      "entity": "USER0420",
+      "action": "logon",
+      "artifact": {
+        "host": "PC012"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771756129989,
+      "entity": "USER0420",
+      "action": "logoff",
+      "artifact": {
+        "host": "PC013"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771756159988,
+      "entity": "USER0420",
+      "action": "logon",
+      "artifact": {
+        "host": "PC010"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771756189987,
+      "entity": "USER0420",
+      "action": "logoff",
+      "artifact": {
+        "host": "PC011"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771756219986,
+      "entity": "USER0420",
+      "action": "logon",
+      "artifact": {
+        "host": "PC012"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771756249985,
+      "entity": "USER0420",
+      "action": "logoff",
+      "artifact": {
+        "host": "PC013"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771756279984,
+      "entity": "USER0420",
+      "action": "logon",
+      "artifact": {
+        "host": "PC010"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771756309983,
+      "entity": "USER0420",
+      "action": "logoff",
+      "artifact": {
+        "host": "PC011"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771756339982,
+      "entity": "USER0420",
+      "action": "logon",
+      "artifact": {
+        "host": "PC012"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771756369981,
+      "entity": "USER0420",
+      "action": "logoff",
+      "artifact": {
+        "host": "PC013"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771756399980,
+      "entity": "USER0420",
+      "action": "logon",
+      "artifact": {
+        "host": "PC010"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771756429979,
+      "entity": "USER0420",
+      "action": "logoff",
+      "artifact": {
+        "host": "PC011"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771756459978,
+      "entity": "USER0420",
+      "action": "logon",
+      "artifact": {
+        "host": "PC012"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771756489977,
+      "entity": "USER0420",
+      "action": "logoff",
+      "artifact": {
+        "host": "PC013"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771756519976,
+      "entity": "USER0420",
+      "action": "logon",
+      "artifact": {
+        "host": "PC010"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771756549975,
+      "entity": "USER0420",
+      "action": "logoff",
+      "artifact": {
+        "host": "PC011"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771756579974,
+      "entity": "USER0420",
+      "action": "logon",
+      "artifact": {
+        "host": "PC012"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771756609973,
+      "entity": "USER0420",
+      "action": "logoff",
+      "artifact": {
+        "host": "PC013"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771756639972,
+      "entity": "USER0420",
+      "action": "logon",
+      "artifact": {
+        "host": "PC010"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771756669971,
+      "entity": "USER0420",
+      "action": "logoff",
+      "artifact": {
+        "host": "PC011"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771756699970,
+      "entity": "USER0420",
+      "action": "logon",
+      "artifact": {
+        "host": "PC012"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771756729969,
+      "entity": "USER0420",
+      "action": "logoff",
+      "artifact": {
+        "host": "PC013"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771756759968,
+      "entity": "USER0420",
+      "action": "logon",
+      "artifact": {
+        "host": "PC010"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771756789967,
+      "entity": "USER0420",
+      "action": "logoff",
+      "artifact": {
+        "host": "PC011"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771756819966,
+      "entity": "USER0420",
+      "action": "logon",
+      "artifact": {
+        "host": "PC012"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771756849965,
+      "entity": "USER0420",
+      "action": "logoff",
+      "artifact": {
+        "host": "PC013"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771756879964,
+      "entity": "USER0420",
+      "action": "logon",
+      "artifact": {
+        "host": "PC010"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771756909963,
+      "entity": "USER0420",
+      "action": "logoff",
+      "artifact": {
+        "host": "PC011"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771756939962,
+      "entity": "USER0420",
+      "action": "logon",
+      "artifact": {
+        "host": "PC012"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771756969961,
+      "entity": "USER0420",
+      "action": "logoff",
+      "artifact": {
+        "host": "PC013"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771756999960,
+      "entity": "USER0420",
+      "action": "logon",
+      "artifact": {
+        "host": "PC010"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771757029959,
+      "entity": "USER0420",
+      "action": "logoff",
+      "artifact": {
+        "host": "PC011"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771757059958,
+      "entity": "USER0420",
+      "action": "logon",
+      "artifact": {
+        "host": "PC012"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771757089957,
+      "entity": "USER0420",
+      "action": "logoff",
+      "artifact": {
+        "host": "PC013"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771757119956,
+      "entity": "USER0420",
+      "action": "logon",
+      "artifact": {
+        "host": "PC010"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771757149955,
+      "entity": "USER0420",
+      "action": "logoff",
+      "artifact": {
+        "host": "PC011"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771757179954,
+      "entity": "USER0420",
+      "action": "logon",
+      "artifact": {
+        "host": "PC012"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771757209953,
+      "entity": "USER0420",
+      "action": "logoff",
+      "artifact": {
+        "host": "PC013"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771757239952,
+      "entity": "USER0420",
+      "action": "logon",
+      "artifact": {
+        "host": "PC010"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771757269951,
+      "entity": "USER0420",
+      "action": "logoff",
+      "artifact": {
+        "host": "PC011"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771757299950,
+      "entity": "USER0420",
+      "action": "logon",
+      "artifact": {
+        "host": "PC012"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771757329949,
+      "entity": "USER0420",
+      "action": "logoff",
+      "artifact": {
+        "host": "PC013"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771757359948,
+      "entity": "USER0420",
+      "action": "logon",
+      "artifact": {
+        "host": "PC010"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771757389947,
+      "entity": "USER0420",
+      "action": "logoff",
+      "artifact": {
+        "host": "PC011"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771757419946,
+      "entity": "USER0420",
+      "action": "logon",
+      "artifact": {
+        "host": "PC012"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771757449945,
+      "entity": "USER0420",
+      "action": "logoff",
+      "artifact": {
+        "host": "PC013"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771757479944,
+      "entity": "USER0420",
+      "action": "logon",
+      "artifact": {
+        "host": "PC010"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771757509943,
+      "entity": "USER0420",
+      "action": "logoff",
+      "artifact": {
+        "host": "PC011"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771757539942,
+      "entity": "USER0420",
+      "action": "logon",
+      "artifact": {
+        "host": "PC012"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    },
+    {
+      "ts_ms": 1771757569941,
+      "entity": "USER0420",
+      "action": "logoff",
+      "artifact": {
+        "host": "PC013"
+      },
+      "source": "logon",
+      "confidence": 0.9,
+      "domain": "IT"
+    }
+  ]
+}

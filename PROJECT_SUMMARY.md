@@ -68,10 +68,8 @@ cd AgenticRAG
 pip install -r requirements.txt
 ```
 
-### 3. 設置 API Key
-```bash
-export OPENAI_API_KEY="your-api-key-here"
-```
+### 3. 設置環境變數
+複製 `env.example` 為 `.env`，填入 `OPENAI_API_KEY` 等變數（勿提交 `.env`）。若僅執行驗證可設 `RUN_MODE=dry_run`。
 
 ### 4. 運行核心分析
 ```bash

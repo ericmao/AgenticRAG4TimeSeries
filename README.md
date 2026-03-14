@@ -2,7 +2,16 @@
 
 ## 專案概述
 
-這是一個專注於核心 Agentic RAG 功能的專案，用於 CERT 內部威脅數據的異常分析。系統整合了多種異常檢測技術和 GPT-4o 語言模型來提供全面的安全分析。
+這是一個專注於核心 Agentic RAG 功能的專案，用於 CERT 內部威脅數據的異常分析。系統整合了多種異常檢測技術；**Layer C 管線**提供 Episode 驅動的檢索、分析、Writeback 與評估，並可選 GPT-4o 或本地 LLM（見下方「此次更新」與架構文件）。
+
+**架構詳情**：請見 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)（合約、資料流、模組職責、CLI、目錄與產物路徑）。
+
+## 此次更新摘要
+
+- **CERT → Episode**：`src/pipeline/cert_to_episodes.py` 從 logon/device CSV（或 synthetic）依 user + 固定時間視窗產出 Episode JSON；CLI `cert2episodes` 可批次寫入 `outputs/episodes/cert/`。
+- **知識庫（KB）**：新增 `kb/sop_insider_anomaly.md`、`kb/hunt_query_templates.md`、`kb/response_policy_guardrails.md`，供 retrieve 檢索並供 triage/hunt/response 引用。
+- **高風險 Demo**：`scripts/gen_insider_highrisk_episode.py` 產出單一高風險 Episode；`scripts/run_highrisk_demo.sh` 一鍵執行 retrieve → analyze → writeback → eval → demo_report。
+- **Docker**：提供 `Dockerfile`、`docker-compose.yml`、`.dockerignore`，可於容器內執行 CLI，產物經 volume 寫回本機。
 
 ## 核心功能
 
@@ -29,8 +38,8 @@
 # 安裝依賴
 pip install -r requirements.txt
 
-# 設置 OpenAI API Key
-export OPENAI_API_KEY="your-api-key-here"
+# 複製 env.example 為 .env 並填入變數（勿提交 .env）
+# 例如：OPENAI_API_KEY=<your-key> 等，見 env.example
 ```
 
 ### 2. 運行核心分析
@@ -40,25 +49,54 @@ export OPENAI_API_KEY="your-api-key-here"
 python scripts/main_agentic_rag_cert.py
 ```
 
+### 3. Docker Compose（可選）
+
+專案提供 `Dockerfile` 與 `docker-compose.yml`，可在容器內執行 CLI。
+
+```bash
+# 複製 env 並填寫（容器會讀取 .env）
+cp env.example .env
+
+# 建置並執行預設指令（validate）
+docker compose run --rm app
+
+# 範例：retrieve、high-risk demo
+docker compose run --rm app python -m src.cli retrieve --episode tests/demo/episode_insider_highrisk.json
+docker compose run --rm app bash scripts/run_highrisk_demo.sh
+```
+
+`outputs/`、`kb/`、`data/` 以 volume 掛載，結果會寫回本機。
+
 ## 專案結構
 
 ```
-AgenticRAG/
+AgenticRAG4TimeSeries/
+├── kb/                            # 知識庫（Layer C 檢索用）
+│   ├── sop_insider_anomaly.md     # 異常 logon / lateral / triage
+│   ├── hunt_query_templates.md    # 多主機 logon、burst、device churn、pivot
+│   ├── response_policy_guardrails.md
+│   ├── sop_incident_response.md
+│   └── policy_acceptable_use.md
 ├── scripts/
-│   ├── main_agentic_rag_cert.py   # 核心 Agentic RAG 系統
-│   └── main.py                    # 原始主腳本
+│   ├── main_agentic_rag_cert.py   # 核心 Agentic RAG 系統（LLM）
+│   ├── main.py
+│   ├── gen_insider_highrisk_episode.py  # 高風險 Episode 產生器
+│   └── run_highrisk_demo.sh       # 一鍵 Layer C demo
 ├── src/
-│   ├── core/                      # 核心組件
-│   │   ├── data_processor.py      # 數據處理器
-│   │   ├── vector_store.py        # 向量存儲
-│   │   ├── markov_anomaly_detector.py
-│   │   └── bert_anomaly_detector.py
-│   ├── utils/                     # 工具函數
-│   │   └── model_persistence.py   # 模型持久化
-│   └── agents/                    # 代理組件
-├── models/                        # 訓練好的模型
-├── data/                          # 數據文件
-└── docs/                          # 文檔
+│   ├── contracts/                 # Episode, Evidence, AgentOutput, Hypothesis
+│   ├── pipeline/                  # retrieve_evidence, cert_to_episodes, run_agents, writeback_pipeline, demo_report
+│   ├── retrievers/                # kb, opencti, query_builder, assemble
+│   ├── agents/                    # triage, hunt_planner, response_advisor（Layer C 規則型）
+│   ├── eval/                      # run_eval, metrics
+│   ├── core/                      # data_processor, vector_store, 異常檢測器
+│   └── config.py
+├── outputs/                       # evidence/, agents/, writeback/, eval/, demo/, audit/
+├── data/                          # CERT 資料（logon.csv, device.csv）
+├── tests/demo/                    # 高風險 demo Episode JSON
+├── docs/
+│   └── ARCHITECTURE.md            # Layer C 架構詳解
+├── Dockerfile
+└── docker-compose.yml
 ```
 
 ## 核心功能詳解
@@ -158,6 +196,16 @@ llm = ChatOpenAI(
 ## 貢獻指南
 
 歡迎提交 Issue 和 Pull Request 來改進這個專案！
+
+## High-Risk Insider Demo
+
+一鍵 Layer C demo：產生高風險內部人 Episode（lateral + burst + device churn），依序執行 retrieve → analyze → writeback → eval → demo_report。
+
+```bash
+bash scripts/run_highrisk_demo.sh
+```
+
+產物路徑：`outputs/evidence/`、`outputs/agents/`、`outputs/writeback/`、`outputs/eval/metrics.csv`、`outputs/demo/demo_report.md`。Episode ID：`cert-USER0420-highrisk`。管線與模組說明見 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)。
 
 ## 授權
 

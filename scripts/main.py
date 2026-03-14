@@ -17,15 +17,10 @@ def load_environment() -> Dict[str, Any]:
     """Load environment variables and configuration."""
     load_dotenv()
     
-    # Set up environment variables if not already set
-    if not os.getenv('OPENAI_API_KEY'):
-        os.environ['OPENAI_API_KEY'] = "your_openai_api_key_here"
-        print("✅ OpenAI API key configured automatically")
-    
-    # Check for required API key
+    # API key must be set in .env (see env.example); no hard-coded fallback
     openai_api_key = os.getenv('OPENAI_API_KEY')
-    if not openai_api_key or openai_api_key == "your_openai_api_key_here":
-        print("⚠ Warning: Using local LLM (Gemma-2B) instead of OpenAI")
+    if not openai_api_key:
+        print("⚠ Warning: OPENAI_API_KEY not set. Using local LLM (Gemma-2B) if available.")
     
     # Model Configuration
     config = {

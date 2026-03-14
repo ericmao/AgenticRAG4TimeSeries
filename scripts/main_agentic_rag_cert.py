@@ -21,8 +21,7 @@ def setup_openai():
     api_key = os.environ.get('OPENAI_API_KEY')
     if not api_key:
         print("⚠️ OPENAI_API_KEY not found in environment variables.")
-        print("Please set your OpenAI API key:")
-        print("export OPENAI_API_KEY='your-api-key-here'")
+        print("Set OPENAI_API_KEY in .env (see env.example at repo root).")
         return False
     
     os.environ['OPENAI_API_KEY'] = api_key

@@ -1,8 +1,8 @@
 # 🚀 Quick Start Guide
 
-## Your API Key is Already Configured! 
+## Configure environment (no secrets in repo)
 
-The system has been pre-configured with your OpenAI API key. You can start using it immediately.
+Copy `env.example` to `.env` in the repo root and set `OPENAI_API_KEY` (and any other variables you need). Never commit `.env`. For dry-run validation without external services, you can leave keys empty and set `RUN_MODE=dry_run`.
 
 ## 🎯 Multiple Setup Options
 

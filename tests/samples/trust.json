@@ -1,0 +1,6 @@
+{
+  "episode_id": "ep-sample-001",
+  "trust_level": "low",
+  "signals": ["no_prior_incidents", "first_alert_today"],
+  "notes": "Optional trust context for triage; reference in why_now if provided."
+}

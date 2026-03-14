@@ -60,10 +60,17 @@ Thumbs.db
 # Logs
 *.log
 
-# Data files (large files)
+# Outputs and data
+outputs/
 data/
 *.csv
 *.json
+!tests/samples/
+!tests/samples/*.json
+!tests/samples/episodes/
+!tests/samples/episodes/*.json
+!tests/demo/
+!tests/demo/*.json
 *.pkl
 *.pickle
 

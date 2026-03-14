@@ -1,0 +1,7 @@
+{
+  "hypothesis_id": "hyp-001",
+  "text": "User-001 may have been compromised and used for lateral movement.",
+  "suspected_intrusion_set": "APT-SAMPLE",
+  "suspected_tactics": ["T1021", "T1046"],
+  "constraints": ["scope: internal only", "no production impact"]
+}
