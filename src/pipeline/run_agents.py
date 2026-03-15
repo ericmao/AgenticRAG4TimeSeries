@@ -1,6 +1,7 @@
 """
 Run all C2 agents on episode + evidence_set. Write validated AgentOutput to outputs/agents/<episode_id>_<agent>.json.
-Audit-log each agent start/end with latency_ms. No network calls.
+Optional: time_series_signals (USE_TIME_SERIES_SIGNALS), LLM analysis (USE_LANGCHAIN_FOR_ANALYSIS, default Ollama).
+Audit-log each agent start/end with latency_ms.
 """
 from __future__ import annotations
 
@@ -31,6 +32,8 @@ def run_all_agents(
 ) -> dict[str, AgentOutput]:
     """
     Run triage, hunt_planner, response_advisor. If write_outputs, write to outputs/agents/<episode_id>_<agent_id>.json.
+    When USE_TIME_SERIES_SIGNALS: merge time_series_signals into trust_signals.
+    When USE_LANGCHAIN_FOR_ANALYSIS: call LLM (Ollama default) and add structured["llm_analysis"] to each output.
     Audit-log start/end with latency_ms. Returns dict agent_id -> AgentOutput.
     """
     root = _repo_root()
@@ -43,6 +46,17 @@ def run_all_agents(
     from src.config import get_config
     cfg = get_config()
     prompt_version = getattr(cfg, "PROMPT_VERSION", "v0.1")
+
+    # Optional: time-series signals for trust_signals
+    if trust_signals is None:
+        trust_signals = {}
+    if getattr(cfg, "USE_TIME_SERIES_SIGNALS", False):
+        try:
+            from src.pipeline.time_series_signals import get_time_series_signals
+            ts_signals = get_time_series_signals(episode)
+            trust_signals = {**trust_signals, "time_series_signals": ts_signals}
+        except Exception:
+            trust_signals = {**trust_signals, "time_series_signals": {"available": False, "error": "time_series_signals failed"}}
 
     runners = [
         ("triage", run_triage),
@@ -62,6 +76,16 @@ def run_all_agents(
         )
         out = run_fn(episode, evidence_set, trust_signals, repair_hint=repair_hint)
         latency_ms = int((time.perf_counter() - t0) * 1000)
+        # Optional: LLM (Ollama) analysis appended to structured
+        if getattr(cfg, "USE_LANGCHAIN_FOR_ANALYSIS", False):
+            try:
+                from src.agents.llm_analysis import analyze_episode_with_llm
+                ts_signals = trust_signals.get("time_series_signals") if trust_signals else None
+                llm_text = analyze_episode_with_llm(episode, evidence_set, agent_role=agent_id, time_series_signals=ts_signals)
+                if llm_text:
+                    out = out.model_copy(update={"structured": {**out.structured, "llm_analysis": llm_text}})
+            except Exception:
+                out = out.model_copy(update={"structured": {**out.structured, "llm_analysis": "[LLM analysis skipped]"}})
         AgentOutput.model_validate(out.model_dump())
         if len(out.citations) < 3:
             raise ValueError(f"Agent {agent_id} must have >= 3 citations, got {len(out.citations)}")

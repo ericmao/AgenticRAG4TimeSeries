@@ -61,6 +61,27 @@ def run_writeback(
     patch = build_writeback_patch(episode, evidence_set, agent_outputs, mode=mode)
     apply_patch(patch)
 
+    # Optional: POST writeback patch to Control Plane (guacamole-ai) when configured
+    try:
+        from connectors.control_plane_client import post_writeback
+        import os
+        if os.environ.get("CONTROL_PLANE_BASE_URL", "").strip():
+            ok, err = post_writeback(patch)
+            if not ok:
+                audit_log(
+                    event={"action": "writeback_post_failed", "error": err},
+                    run_id=run_id,
+                    episode_id=episode_id,
+                    component="pipeline.writeback",
+                )
+    except Exception as e:
+        audit_log(
+            event={"action": "writeback_post_error", "error": str(e)},
+            run_id=run_id,
+            episode_id=episode_id,
+            component="pipeline.writeback",
+        )
+
     writeback_dir = root / "outputs" / "writeback"
     writeback_dir.mkdir(parents=True, exist_ok=True)
     writeback_path = writeback_dir / f"{episode_id}.json"

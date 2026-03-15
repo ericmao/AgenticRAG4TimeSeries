@@ -21,9 +21,27 @@ class Config(BaseModel):
     RUN_MODE: str = "dry_run"
     PROMPT_VERSION: str = "v0.1"
 
+    # LLM: default local Ollama
+    LLM_BACKEND: str = "ollama"
+    LLM_OLLAMA_PRIMARY: str = "http://127.0.0.1:11434"
+    LLM_MODEL: str = "llama3.1:latest"
+    LLM_TIMEOUT: int = 120
+    LLM_TEMPERATURE: float = 0.1
+
+    # Layer C optional: time-series signals and LangChain analysis
+    USE_TIME_SERIES_SIGNALS: bool = False
+    USE_LANGCHAIN_FOR_ANALYSIS: bool = False
+
     @classmethod
     def from_env(cls) -> "Config":
         import os
+        def _bool(key: str, default: bool) -> bool:
+            v = os.environ.get(key, "").strip().lower()
+            if v in ("1", "true", "yes"):
+                return True
+            if v in ("0", "false", "no"):
+                return False
+            return default
         return cls(
             OPENAI_API_KEY=os.environ.get("OPENAI_API_KEY", "").strip(),
             OPENCTI_URL=os.environ.get("OPENCTI_URL", "").strip(),
@@ -31,6 +49,13 @@ class Config(BaseModel):
             KB_PATH=os.environ.get("KB_PATH", "kb/").strip() or "kb/",
             RUN_MODE=os.environ.get("RUN_MODE", "dry_run").strip() or "dry_run",
             PROMPT_VERSION=os.environ.get("PROMPT_VERSION", "v0.1").strip() or "v0.1",
+            LLM_BACKEND=os.environ.get("LLM_BACKEND", "ollama").strip() or "ollama",
+            LLM_OLLAMA_PRIMARY=os.environ.get("LLM_OLLAMA_PRIMARY", "http://127.0.0.1:11434").strip() or "http://127.0.0.1:11434",
+            LLM_MODEL=os.environ.get("LLM_MODEL", "llama3.1:latest").strip() or "llama3.1:latest",
+            LLM_TIMEOUT=int(os.environ.get("LLM_TIMEOUT", "120").strip() or "120"),
+            LLM_TEMPERATURE=float(os.environ.get("LLM_TEMPERATURE", "0.1").strip() or "0.1"),
+            USE_TIME_SERIES_SIGNALS=_bool("USE_TIME_SERIES_SIGNALS", False),
+            USE_LANGCHAIN_FOR_ANALYSIS=_bool("USE_LANGCHAIN_FOR_ANALYSIS", False),
         )
 
     def validate_required_for_run(self) -> None:
