@@ -1,0 +1,4 @@
+# EMQX 5 API Key bootstrap (single line: key_id:key_secret)
+# Copy to emqx_default_api_key.conf and replace with your key.
+# Generate via: emqx ctl api-keys create <key_id> <key_secret>
+your_api_key_id:your_api_key_secret

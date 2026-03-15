@@ -230,11 +230,65 @@ AgenticRAG4TimeSeries/
 
 ---
 
+## G) SenseL Dataplane + Guacamole-ai 升級計劃（Phase 1–4）
+
+本節定義 sensel-dataplane、guacamole-ai、AgenticRAG 的整合與可觀性階段，含 **guacamole-ai 監看 dataplane MQTT** 的規劃。
+
+### Phase 1：Layer C + IOC/CTI 雙通道（MQTT / API）+ Dataplane MQTT 監看
+
+| 項目 | 內容 | 產出 / 驗收 |
+|------|------|-------------|
+| **1.1 Layer C writeback 雙通道** | AgenticRAG Layer C 可經 **API** 或 **MQTT** 回寫；sensel-dataplane 提供 bridge 訂閱 `sensel/cases/writeback` → 轉 HTTP `POST .../api/v1/cases/writeback` | 同一 WritebackPatch 經 API 與 MQTT 送達 guacamole-ai，結果一致 |
+| **1.2 guacamole-ai IOC/CTI 情資雙通道** | 情資讀取（blacklist、risk/summary、cti/composition、opencti/indicators）除既有 REST 外，可經 **MQTT** 訂閱取得；寫入（sightings、ingest）可選 MQTT 發佈 | Contract 與 REST 一致；MQTT payload 與 API response 可 diff 驗證 |
+| **1.3 guacamole-ai Watch Dataplane MQTT** | 在 **CTI 儀表板新增「Dataplane MQTT」分頁**：連線 dataplane EMQX，顯示 **topic 清單** 與 **近期/即時訊息內容**，便於驗證 Phase 1 MQTT 串接與除錯 | (1) Dashboard 下拉新增「Dataplane MQTT」分頁；(2) 後端 `GET /api/v1/dataplane-mqtt/topics` 回傳頻道清單；(3) 可選 `GET /api/v1/dataplane-mqtt/messages` 或 SSE 提供訊息預覽；(4) 設定 `DATAPLANE_EMQX_URL` 等連線參數 |
+
+**依賴**：sensel-dataplane EMQX 可連線；guacamole-ai 可選用 EMQX Management API 或 MQTT 訂閱取得 topic 與訊息。
+
+### Phase 2：統一到 Layer B
+
+| 項目 | 內容 | 產出 / 驗收 |
+|------|------|-------------|
+| **2.1 Layer B 結果雙通道** | Inference results 除 HTTP POST 外，可經 MQTT 發佈至 dataplane（如 `sensel/results/layerb/hypothesis`）；bridge 轉 HTTP `POST .../api/v1/inference/results`，並可選寫入 Kafka `results.layerb.hypothesis` | 同一 InferenceResult 經 API 與 MQTT 送達 guacamole-ai，結果一致 |
+| **2.2 Dataplane MQTT 監看擴充** | Phase 1 的「Dataplane MQTT」分頁可顯示 `sensel/results/layerb/*` 等 topic 與訊息，方便驗證 Layer B 回寫 | 分頁可篩選/顯示 results 相關 topic 與 payload |
+
+### Phase 3：統一到 Layer A
+
+| 項目 | 內容 | 產出 / 驗收 |
+|------|------|-------------|
+| **3.1 事件來源對齊** | AgenticRAG Layer B 可從 sensel-dataplane Kafka（如 `events.raw.*` / `events.norm.*`）消費事件；guacamole-ai 情資/事件查詢與 dataplane 對齊 | 文件與設定說明事件來源可選 CP API 或 Kafka |
+| **3.2 Dataplane MQTT 監看完整化** | 「Dataplane MQTT」分頁可觀看 events / results / cases 相關 topic，與 Layer A/B/C 對應關係在文件或 UI 註解中標示 | 分頁能區分 events / results / cases 等類別並顯示對應說明 |
+
+### Phase 4：WebSocket 與進階可觀性
+
+| 項目 | 內容 | 產出 / 驗收 |
+|------|------|-------------|
+| **4.1 IOC/CTI WebSocket** | guacamole-ai 情資 API 提供 **WebSocket** 通道，與 MQTT/API 同一 contract；支援 on-demand 查詢與可選的 server push（情資更新） | 同一邏輯可經 REST / MQTT / WebSocket 取得，payload 一致 |
+| **4.2 Dataplane MQTT 即時串流** | 「Dataplane MQTT」分頁可選 **SSE 或 WebSocket** 即時尾隨指定 topic，減少輪詢 | 分頁可訂閱 topic 並即時顯示新訊息 |
+| **4.3 可觀性與維運** | 視需要：告警規則、保留天數、權限（僅管理員可看 Dataplane MQTT）、稽核日誌 | 依營運需求訂 AC |
+
+### 任務對照表（Jira-Ready 擴充）
+
+| ID | 階段 | 任務 | 備註 |
+|----|------|------|------|
+| G1 | Phase 1 | sensel-dataplane：訂閱 `sensel/cases/writeback` 的 bridge，轉 POST guacamole-ai `/api/v1/cases/writeback` | Layer C 雙通道 |
+| G2 | Phase 1 | guacamole-ai：IOC/CTI 情資 MQTT adapter（publish 讀取結果到 `sensel/cti/...`；訂閱寫入 topic 轉 POST） | 情資雙通道 |
+| G3 | Phase 1 | guacamole-ai：**Watch Dataplane MQTT** — 後端 `GET /api/v1/dataplane-mqtt/topics`、可選 `GET /api/v1/dataplane-mqtt/messages` 或 SSE | 需 `DATAPLANE_EMQX_URL` 等設定 |
+| G4 | Phase 1 | guacamole-ai：CTI 儀表板新增「Dataplane MQTT」分頁（下拉選項 + tab 內容 + switchTab 載入） | 見 G 節說明 |
+| G5 | Phase 2 | sensel-dataplane：訂閱 `sensel/results/layerb/hypothesis` 的 bridge，轉 POST guacamole-ai `/api/v1/inference/results` | Layer B 雙通道 |
+| G6 | Phase 2 | Dataplane MQTT 分頁可顯示 results 相關 topic | 擴充 Phase 1 分頁 |
+| G7 | Phase 3 | AgenticRAG / guacamole-ai 與 Layer A 事件流對齊（Kafka/EMQX） | 文件與設定 |
+| G8 | Phase 3 | Dataplane MQTT 分頁 topic 分類與說明 | 可觀性 |
+| G9 | Phase 4 | guacamole-ai IOC/CTI WebSocket API | 三通道完整 |
+| G10 | Phase 4 | Dataplane MQTT 分頁即時串流（SSE/WebSocket） | 進階可觀性 |
+
+---
+
 ## 產出清單
 
 - **兩 repo 建議 tree**：見 C)、D) 小節。  
 - **合約 schema v1 摘要**：見 **docs/SENSEL_CONTRACTS_V1.md**。  
 - **Demo 指令**：見 E) 小節。  
-- **Jira 任務清單**：見 F) 表格（Epic A–E，共 18 項）。
+- **Jira 任務清單**：見 F) 表格（Epic A–E，共 18 項）、**G) 升級計劃** Phase 1–4 任務 G1–G10。  
+- **整合測試案例**：見 **docs/SENSEL_INTEGRATION_TEST_CASES.md**。
 
 Control Plane 端具體檔案內容（docker-compose、scripts 範例、API 規格）見 **docs/control_plane_spec/**。

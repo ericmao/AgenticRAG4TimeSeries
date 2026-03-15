@@ -82,4 +82,7 @@ data/
 
 # Temporary files
 *.tmp
-*.temp 
+*.temp
+
+# EMQX API key (use emqx_default_api_key.conf.example as template)
+docs/control_plane_spec/deployments/layerA/emqx_default_api_key.conf
