@@ -1,0 +1,6 @@
+# Minimal deps for Layer C demo + API (retrieve → analyze → writeback) without LLM/torch
+pydantic>=2.0.0
+python-dotenv>=0.19.0
+requests>=2.28.0
+fastapi>=0.100.0
+uvicorn[standard]>=0.22.0

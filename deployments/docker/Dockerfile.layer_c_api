@@ -1,0 +1,17 @@
+# Layer C Analysis API: long-running HTTP service (POST /analyze).
+# Build from repo root: docker build -f deployments/docker/Dockerfile.layer_c_api -t layerc-api .
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY deployments/docker/requirements-layer-c.txt /tmp/requirements-layer-c.txt
+RUN pip install --no-cache-dir -r /tmp/requirements-layer-c.txt
+
+COPY . .
+ENV PYTHONPATH=/app
+
+ENV RUN_MODE=dry_run
+ENV USE_LANGCHAIN_FOR_ANALYSIS=0
+
+EXPOSE 8000
+CMD ["uvicorn", "services.layer_c_api.app:app", "--host", "0.0.0.0", "--port", "8000"]

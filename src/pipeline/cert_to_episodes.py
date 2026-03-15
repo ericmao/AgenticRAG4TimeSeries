@@ -82,6 +82,8 @@ def _load_cert_data(data_dir: Path) -> pd.DataFrame:
         device["source"] = "device"
         merged = pd.concat([logon, device], ignore_index=True)
         merged = merged.sort_values(["user", "date"])
+        if "pc" in merged.columns and "computer" not in merged.columns:
+            merged = merged.rename(columns={"pc": "computer"})
         return merged
     # Minimal synthetic: USER0001, USER0002, PC001-style; span 2+ windows so we get at least 2 episodes
     logger.info("CERT files not found; generating minimal synthetic data (at least 2 episodes).")

@@ -1,0 +1,21 @@
+# Layer C investigation workflow demo: retrieve → analyze → writeback (POST to Control Plane).
+# Build from repo root: docker build -f deployments/docker/Dockerfile.layer_c -t layerc-demo .
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Minimal deps for Layer C pipeline (no torch/LLM)
+COPY deployments/docker/requirements-layer-c.txt /tmp/requirements-layer-c.txt
+RUN pip install --no-cache-dir -r /tmp/requirements-layer-c.txt
+
+COPY . .
+ENV PYTHONPATH=/app
+
+# Optional: run without LLM and with dry_run
+ENV RUN_MODE=dry_run
+ENV USE_LANGCHAIN_FOR_ANALYSIS=0
+
+COPY deployments/docker/entrypoint_layer_c.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]

@@ -109,6 +109,40 @@ def cmd_demo_report(episode_path: str) -> int:
     return 0
 
 
+def cmd_cert2kb_candidates(
+    episodes_dir: str = "outputs/episodes/cert",
+    out_dir: str = "outputs/kb_candidates/cert",
+    filter_tags: Optional[str] = None,
+    limit: Optional[int] = None,
+    reliability_threshold: float = 0.6,
+    write_to_kb: bool = False,
+) -> int:
+    """Build KB candidates from episode JSONs with self-evaluation; optionally auto-add to KB when score >= threshold."""
+    from src.pipeline.cert_to_kb_candidates import run_cert_to_kb_candidates, export_candidates_to_kb
+
+    filter_list = [t.strip() for t in filter_tags.split(",") if t.strip()] if filter_tags else None
+    candidates, out_path = run_cert_to_kb_candidates(
+        episodes_dir=episodes_dir,
+        out_dir=out_dir,
+        filter_tags=filter_list,
+        limit=limit,
+        reliability_threshold=reliability_threshold,
+    )
+    n_auto = sum(1 for c in candidates if c.auto_add)
+    print("cert2kb_candidates ok")
+    print(f"  candidates={len(candidates)} (auto_add={n_auto} above threshold {reliability_threshold})")
+    print(f"  output={out_path}")
+    if write_to_kb:
+        kb_dir, n = export_candidates_to_kb(
+            out_path,
+            kb_subdir="cert_candidates",
+            reliability_threshold=reliability_threshold,
+            max_export=50,
+        )
+        print(f"  exported_to_kb={n} files in {kb_dir}")
+    return 0
+
+
 def cmd_cert2episodes(
     data_dir: str = "data",
     out_dir: str = "outputs/episodes/cert",
@@ -160,6 +194,13 @@ def main() -> int:
     ev_p = sub.add_parser("eval", help="Batch eval: run episodes, write metrics.csv, summary.json, report.md")
     ev_p.add_argument("--episodes_dir", default="tests/samples/episodes", help="Directory of episode JSONs")
     ev_p.add_argument("--limit", type=int, default=20, help="Max episodes to run")
+    c2k_p = sub.add_parser("cert2kb_candidates", help="Episode → KB candidates with reliability score; optional auto-add to KB")
+    c2k_p.add_argument("--episodes_dir", default="outputs/episodes/cert", help="Directory of episode JSONs")
+    c2k_p.add_argument("--out_dir", default="outputs/kb_candidates/cert", help="Output directory for candidates.json")
+    c2k_p.add_argument("--filter_tags", default=None, help="Comma-separated tags: only episodes with any (e.g. lateral,burst)")
+    c2k_p.add_argument("--limit", type=int, default=None, help="Max episodes to process")
+    c2k_p.add_argument("--reliability_threshold", type=float, default=0.6, help="Score >= this => auto_add; only these exported to KB (default 0.6)")
+    c2k_p.add_argument("--write_to_kb", action="store_true", help="Export candidates with score >= threshold to kb/cert_candidates/*.md (max 50)")
     c2e_p = sub.add_parser("cert2episodes", help="CERT → Episodes: build episode JSONs from logon/device (or synthetic)")
     c2e_p.add_argument("--data_dir", default="data", help="CERT data directory (logon.csv, device.csv)")
     c2e_p.add_argument("--out_dir", default="outputs/episodes/cert", help="Output directory for episode JSONs")
@@ -178,6 +219,15 @@ def main() -> int:
         return cmd_writeback(args.episode, mode=getattr(args, "mode", "dry_run"))
     if args.cmd == "eval":
         return cmd_eval(getattr(args, "episodes_dir", "tests/samples/episodes"), getattr(args, "limit", 20))
+    if args.cmd == "cert2kb_candidates":
+        return cmd_cert2kb_candidates(
+            episodes_dir=getattr(args, "episodes_dir", "outputs/episodes/cert"),
+            out_dir=getattr(args, "out_dir", "outputs/kb_candidates/cert"),
+            filter_tags=getattr(args, "filter_tags", None),
+            limit=getattr(args, "limit", None),
+            reliability_threshold=getattr(args, "reliability_threshold", 0.6),
+            write_to_kb=getattr(args, "write_to_kb", False),
+        )
     if args.cmd == "cert2episodes":
         return cmd_cert2episodes(
             data_dir=getattr(args, "data_dir", "data"),

@@ -207,6 +207,29 @@ bash scripts/run_highrisk_demo.sh
 
 產物路徑：`outputs/evidence/`、`outputs/agents/`、`outputs/writeback/`、`outputs/eval/metrics.csv`、`outputs/demo/demo_report.md`。Episode ID：`cert-USER0420-highrisk`。管線與模組說明見 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)。
 
+## 使用 CERT r3.2 進行 Layer C 測試
+
+若已下載 [CERT Insider Threat r3.2](https://www.kaggle.com/datasets/nitishabharathi/cert-insider-threat)（含 `logon.csv`、`device.csv`），可直接用該資料產出 Episode 並跑完整 Layer C 管線（retrieve → analyze → writeback → eval）。
+
+**一鍵腳本**（預設 r3.2 路徑為 `~/Downloads/r3.2`，只跑前 5 個 episode）：
+
+```bash
+R32_DATA_DIR=/path/to/r3.2 bash scripts/run_layer_c_r32.sh
+# 或指定筆數：LIMIT=10 bash scripts/run_layer_c_r32.sh
+```
+
+**手動兩步驟**：
+
+```bash
+# 1) 從 r3.2 產出 Episode JSON 到 outputs/episodes/cert_r32
+python3 -m src.cli cert2episodes --data_dir /path/to/r3.2 --out_dir outputs/episodes/cert_r32 --window_days 7 --run_id cert-r32-1
+
+# 2) 對該目錄跑 Layer C 評估（預設最多 20 個 episode）
+python3 -m src.cli eval --episodes_dir outputs/episodes/cert_r32 --limit 5
+```
+
+產物：`outputs/evidence/`、`outputs/agents/`、`outputs/writeback/`、`outputs/eval/metrics.csv`。單元測試（使用 r3.2 形狀的 fixture，無需真實 r3.2 檔）：`pytest tests/test_layer_c_cert.py -v`。
+
 ## 授權
 
 本專案採用 MIT 授權條款。 
