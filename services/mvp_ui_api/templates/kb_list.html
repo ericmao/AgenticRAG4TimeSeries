@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8"/>
+  <title>Knowledge base (KB)</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 1.5rem; max-width: 90rem; }
+    nav a { margin-right: 1rem; }
+    .meta { color: #555; font-size: 0.9rem; margin-bottom: 1rem; }
+    .group-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    details.kb-group {
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 0.35rem 0.65rem;
+      background: #fafafa;
+    }
+    details.kb-group > summary {
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.35rem 0.75rem;
+      font-weight: 600;
+    }
+    details.kb-group > summary::before {
+      content: '▸';
+      display: inline-block;
+      width: 1.1rem;
+      color: #555;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+    details.kb-group[open] > summary::before {
+      content: '▾';
+    }
+    .summary-title { flex: 1 1 12rem; min-width: 0; line-height: 1.35; }
+    .summary-key {
+      font-family: ui-monospace, monospace;
+      font-size: 0.78rem;
+      color: #444;
+      font-weight: normal;
+    }
+    .summary-count {
+      font-size: 0.85rem;
+      color: #333;
+      white-space: nowrap;
+    }
+    .file-list {
+      margin: 0.5rem 0 0.25rem 0;
+      padding-left: 1.1rem;
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+    .file-list li { margin: 0.45rem 0; }
+    .file-line { line-height: 1.4; }
+    a.detail-link {
+      margin-left: 0.45rem;
+      font-size: 0.88rem;
+      color: #156;
+      text-decoration: underline;
+    }
+    .file-overview {
+      display: block;
+      margin: 0.25rem 0 0 0;
+      padding-left: 0.5rem;
+      border-left: 3px solid #cce;
+      font-size: 0.86rem;
+      color: #333;
+      line-height: 1.45;
+      max-width: 52rem;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="/runs">Runs</a>
+    <a href="/kb">KB</a>
+    <a href="/api/kb/files">JSON（平面）</a>
+    <a href="/api/kb/groups">JSON（群組）</a>
+  </nav>
+  <h1>Knowledge base</h1>
+  <p class="meta">路徑：<code>{{ kb_root_display }}</code>（環境變數 <code>KB_PATH</code>，相對 repo 根）</p>
+  <p class="meta"><strong>操作</strong>：點擊每個群組列（▸／▾）可<strong>展開或收合</strong>該群檔案清單；第一群預設展開。各檔可點<strong>檔名</strong>或<strong>詳情</strong>開啟全文頁 <code>/kb/p/…</code>。</p>
+  <p class="meta"><strong>LLM 摘要</strong>：僅顯示快取中已有內容（<code>outputs/.kb_group_llm_cache.json</code>、<code>outputs/.kb_file_llm_cache.json</code>），<strong>開啟本頁不會呼叫 LLM</strong>，以免影響回應時間。若無快取或內容已變更則不顯示該段。</p>
+  {% if error %}
+  <p style="color:#b00;">{{ error }}</p>
+  {% endif %}
+  {% if not groups %}
+  <p>找不到 .md / .txt，或 KB 目錄不存在。</p>
+  {% else %}
+  <div class="group-list">
+    {% for g in groups %}
+    <details class="kb-group"{% if loop.first %} open{% endif %}>
+      <summary>
+        <span class="summary-title">{{ g.display_summary }}</span>
+        <span class="summary-key" title="同 key 表示正規化後模板相同">{{ g.group_key }}</span>
+        <span class="summary-count">{{ g.group_size }} 檔</span>
+      </summary>
+      <ul class="file-list">
+        {% for f in g.files %}
+        <li>
+          <span class="file-line">
+            <a href="/kb/p/{{ f.href_path }}">{{ f.rel_path }}</a>
+            <a href="/kb/p/{{ f.href_path }}" class="detail-link">詳情</a>
+            {% if kb_db_enabled %}<a href="/kb/e/{{ f.href_edit }}" style="margin-left:0.5rem;font-size:0.88rem;">編輯</a>{% endif %}
+            {% if f.sequence_tags %}<span class="meta"> — {{ f.sequence_tags }}</span>{% endif %}
+          </span>
+          {% if f.llm_file_summary %}
+          <span class="file-overview">{{ f.llm_file_summary }}</span>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    </details>
+    {% endfor %}
+  </div>
+  {% endif %}
+</body>
+</html>

@@ -8,10 +8,15 @@
 
 ## 此次更新摘要
 
+- **CERT v1 路徑與 Layer C**：見 [docs/CERT_V1.md](docs/CERT_V1.md)；`scripts/mvp_cert_layer_c.py` 對 demo／CERT Episode 跑完整 Layer C 並寫入 `analysis_runs`。
+- **泛用執行紀錄**：`deployments/sql/analysis_runs_schema.sql`（`source`=`cert`|`wazuh`）；`scripts/mvp_wazuh_episode_pg.py` 改寫入 `analysis_runs`。
+- **MVP Web UI**：`services/mvp_ui_api/app.py`（FastAPI）列表／詳情與觸發 CERT 執行；說明見 [docs/MVP_UI.md](docs/MVP_UI.md)。
+- **Wazuh 輪詢**：`scripts/wazuh_ingest_poll.py` + `wazuh_ingest_state` 游標；Indexer 查詢共用於 `src/integrations/wazuh_indexer_client.py`。
 - **CERT → Episode**：`src/pipeline/cert_to_episodes.py` 從 logon/device CSV（或 synthetic）依 user + 固定時間視窗產出 Episode JSON；CLI `cert2episodes` 可批次寫入 `outputs/episodes/cert/`。
 - **知識庫（KB）**：新增 `kb/sop_insider_anomaly.md`、`kb/hunt_query_templates.md`、`kb/response_policy_guardrails.md`，供 retrieve 檢索並供 triage/hunt/response 引用。
 - **高風險 Demo**：`scripts/gen_insider_highrisk_episode.py` 產出單一高風險 Episode；`scripts/run_highrisk_demo.sh` 一鍵執行 retrieve → analyze → writeback → eval → demo_report。
 - **Docker**：提供 `Dockerfile`、`docker-compose.yml`、`.dockerignore`，可於容器內執行 CLI，產物經 volume 寫回本機。
+- **本機部署（Postgres + MVP UI）**：`docker compose -f docker-compose.local.yml up -d --build`，見 [docs/MVP_UI.md](docs/MVP_UI.md)。
 
 ## 核心功能
 

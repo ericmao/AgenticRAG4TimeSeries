@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8"/>
+  <title>{{ title }}</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 1.5rem; max-width: 56rem; }
+    nav a { margin-right: 1rem; }
+    pre {
+      background: #f8f8f8;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 1rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+    .path { color: #555; font-size: 0.9rem; margin-bottom: 0.75rem; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="/kb">← KB 列表</a>
+    {% if kb_db_enabled %}<a href="/kb/e/{{ href_edit }}">編輯</a>{% endif %}
+    <a href="/runs">Runs</a>
+  </nav>
+  <h1>{{ title }}</h1>
+  <p class="path"><code>{{ rel_path }}</code> · {{ size }} B</p>
+  <pre>{{ body_html }}</pre>
+</body>
+</html>

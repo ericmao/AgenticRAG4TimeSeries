@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8"/>
+  <title>Analysis runs</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 1.25rem 1.5rem 2rem; max-width: 72rem; line-height: 1.45; color: #1a1a1a; }
+    h1 { font-size: 1.35rem; margin: 0 0 0.35rem; }
+    nav.top { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; margin-bottom: 0.75rem; }
+    nav.top a { color: #06c; text-decoration: none; }
+    nav.top a:hover { text-decoration: underline; }
+    .breadcrumb { color: #555; font-size: 0.95rem; }
+    .pipeline-intro {
+      background: #f8f9fa;
+      border: 1px solid #e8eaed;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      color: #333;
+    }
+    .pipeline-intro p { margin: 0 0 0.5rem; }
+    .pipeline-intro p:last-child { margin-bottom: 0; }
+    .pipeline-steps {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 0.75rem;
+      font-weight: 600; font-size: 0.85rem; color: #444;
+    }
+    .pipeline-steps span.arrow { color: #999; font-weight: 400; }
+    .seg {
+      display: inline-flex; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; margin-bottom: 1rem;
+    }
+    .seg a {
+      padding: 0.45rem 0.9rem; font-size: 0.9rem; text-decoration: none; color: #333;
+      background: #fff; border-right: 1px solid #ddd;
+    }
+    .seg a:last-child { border-right: none; }
+    .seg a:hover { background: #f7f7f7; }
+    .seg a.active { background: #e8f0fe; color: #1a4d8f; font-weight: 600; }
+    .seg-hint { font-size: 0.8rem; color: #666; margin-left: 0.75rem; display: inline-block; vertical-align: middle; }
+    .err-box {
+      background: #ffebee; border: 1px solid #e57373; color: #b71c1c;
+      padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem;
+    }
+    .empty-box {
+      border: 1px dashed #ccc; border-radius: 8px; padding: 2rem 1.25rem; text-align: center; color: #555;
+    }
+    .empty-box h2 { font-size: 1rem; margin: 0 0 0.5rem; color: #333; }
+    .empty-box p { margin: 0; font-size: 0.9rem; }
+    table { border-collapse: collapse; width: 100%; font-size: 0.88rem; }
+    th, td { border: 1px solid #ddd; padding: 0.45rem 0.55rem; text-align: left; vertical-align: middle; }
+    th { background: #f4f4f4; font-weight: 600; white-space: nowrap; }
+    tr.run-row { cursor: pointer; }
+    tr.run-row:hover { background: #f8fafc; }
+    tr.run-row:focus { outline: 2px solid #06c; outline-offset: -2px; }
+    td.id-cell a { color: #06c; font-weight: 600; text-decoration: none; }
+    td.id-cell a:hover { text-decoration: underline; }
+    .time-cell { white-space: nowrap; }
+    .time-cell .rel { display: block; font-weight: 500; }
+    .time-cell .full { font-size: 0.78rem; color: #666; }
+    .ep { max-width: 14rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: ui-monospace, monospace; font-size: 0.82rem; }
+    .pipeline-cells { white-space: nowrap; }
+    .pill {
+      display: inline-block; min-width: 1.75rem; text-align: center;
+      padding: 0.12rem 0.35rem; border-radius: 4px; font-size: 0.72rem; font-weight: 700;
+      font-family: ui-monospace, monospace;
+    }
+    .pill-ok { background: #e8f5e9; color: #1b5e20; }
+    .pill-err { background: #ffebee; color: #b71c1c; }
+    .pill-warn { background: #fff8e1; color: #e65100; }
+    .pill-muted { background: #eee; color: #888; }
+    .status-badge { font-size: 0.8rem; font-weight: 600; }
+    .status-ok { color: #1b5e20; }
+    .status-bad { color: #b71c1c; }
+    .status-warn { color: #e65100; }
+    .action-link { font-size: 0.85rem; white-space: nowrap; }
+    .action-link a { color: #06c; }
+    .num { text-align: right; font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+<body>
+  <nav class="top">
+    <span class="breadcrumb"><strong>Runs</strong> — 分析紀錄</span>
+    <a href="/kb">KB</a>
+    <a href="/api/runs">JSON API</a>
+  </nav>
+
+  <h1>Analysis runs</h1>
+
+  <div class="pipeline-intro" role="region" aria-label="管線說明">
+    <p>每筆 run 對應一則 episode 的完整分析紀錄：<strong>取證（C1）</strong> → <strong>規則研判（C2）</strong> → <strong>回寫（C3）</strong>。點選列或「查看」可開啟詳情與 JSON 產物連結。</p>
+    <div class="pipeline-steps" aria-hidden="true">
+      <span>C1 取證</span><span class="arrow">→</span>
+      <span>C2 研判</span><span class="arrow">→</span>
+      <span>C3 回寫</span>
+    </div>
+  </div>
+
+  <div>
+    <div class="seg" role="tablist" aria-label="資料來源">
+      <a href="/runs" class="{% if not source %}active{% endif %}">全部</a>
+      <a href="/runs?source=cert" class="{% if source == 'cert' %}active{% endif %}">cert</a>
+      <a href="/runs?source=wazuh" class="{% if source == 'wazuh' %}active{% endif %}">wazuh</a>
+    </div>
+    <span class="seg-hint">cert：離線／樣本 episode；wazuh：與 SIEM 串接產生</span>
+  </div>
+
+  {% if error %}
+  <div class="err-box" role="alert">
+    <strong>無法載入資料</strong>（{{ error }}）。請確認 <code>DATABASE_URL</code> 與資料庫連線。
+  </div>
+  {% endif %}
+
+  {% if not error and runs|length == 0 %}
+  <div class="empty-box">
+    <h2>尚無分析紀錄</h2>
+    <p>執行 <code>mvp_cert_layer_c.py</code> / <code>mvp_wazuh_episode_pg.py</code> 等管線並寫入 DB 後，列表會顯示於此。</p>
+  </div>
+  {% endif %}
+
+  {% if runs|length > 0 %}
+  <table>
+    <thead>
+      <tr>
+        <th>id</th>
+        <th>時間</th>
+        <th>來源</th>
+        <th>episode_id</th>
+        <th title="layerc_summary 管線狀態">C1</th>
+        <th>C2</th>
+        <th>C3</th>
+        <th>status</th>
+        <th class="num">alerts</th>
+        <th>triage_rules</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in runs %}
+      {% set ls = r.layerc_summary %}
+      {% set c1 = ls.get('c1_retrieve') if ls else none %}
+      {% set c2 = ls.get('c2_analyze') if ls else none %}
+      {% set c3 = ls.get('c3_writeback') if ls else none %}
+      <tr class="run-row" data-href="/runs/{{ r.id }}" tabindex="0" role="link" aria-label="Run {{ r.id }}，點擊開啟詳情">
+        <td class="id-cell"><a href="/runs/{{ r.id }}" onclick="event.stopPropagation()">{{ r.id }}</a></td>
+        <td class="time-cell" data-iso="{{ r.created_at_iso }}">
+          <span class="rel">—</span>
+          <span class="full">{{ r.created_at }}</span>
+        </td>
+        <td><strong style="font-size:0.85rem">{{ r.source }}</strong></td>
+        <td class="ep" title="{{ r.episode_id }}">{{ r.episode_id }}</td>
+        <td class="pipeline-cells">{% if c1 %}<span class="pill {% if c1 == 'ok' %}pill-ok{% elif c1 == 'failed' %}pill-err{% else %}pill-warn{% endif %}" title="c1_retrieve: {{ c1 }}">C1</span>{% else %}<span class="pill pill-muted" title="無摘要">—</span>{% endif %}</td>
+        <td class="pipeline-cells">{% if c2 %}<span class="pill {% if c2 == 'ok' %}pill-ok{% elif c2 in ('failed', 'error') %}pill-err{% else %}pill-warn{% endif %}" title="c2_analyze: {{ c2 }}">C2</span>{% else %}<span class="pill pill-muted" title="無摘要">—</span>{% endif %}</td>
+        <td class="pipeline-cells">{% if c3 %}<span class="pill {% if c3 == 'ok' %}pill-ok{% elif 'fail' in (c3 | string | lower) %}pill-err{% else %}pill-warn{% endif %}" title="c3_writeback: {{ c3 }}">C3</span>{% else %}<span class="pill pill-muted" title="無摘要">—</span>{% endif %}</td>
+        <td class="status-badge {% if r.status == 'ok' %}status-ok{% elif r.status in ('failed', 'error') %}status-bad{% elif r.status == 'pending' %}status-warn{% endif %}">{{ r.status }}</td>
+        <td class="num">{{ r.alert_count }}</td>
+        <td>
+          {% if r.layerc_summary and r.layerc_summary.get('triage_rules') %}
+            {{ r.layerc_summary.get('triage_rules') | join(', ') }}
+          {% elif r.layerc_summary and r.layerc_summary.get('rules_count') is not none %}
+            n={{ r.layerc_summary.get('rules_count') }}
+          {% else %}
+            —
+          {% endif %}
+        </td>
+        <td class="action-link"><a href="/runs/{{ r.id }}" onclick="event.stopPropagation()">查看</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  <script>
+    (function () {
+      function relTime(iso) {
+        if (!iso) return;
+        var t = Date.parse(iso);
+        if (isNaN(t)) return;
+        var s = Math.floor((Date.now() - t) / 1000);
+        if (s < 60) return '剛剛';
+        if (s < 3600) return Math.floor(s / 60) + ' 分鐘前';
+        if (s < 86400) return Math.floor(s / 3600) + ' 小時前';
+        if (s < 604800) return Math.floor(s / 86400) + ' 天前';
+        return iso.slice(0, 19).replace('T', ' ');
+      }
+      document.querySelectorAll('.time-cell[data-iso]').forEach(function (cell) {
+        var iso = cell.getAttribute('data-iso');
+        var rel = cell.querySelector('.rel');
+        if (rel && iso) {
+          var r = relTime(iso);
+          if (r) rel.textContent = r;
+        }
+      });
+      document.querySelectorAll('tr.run-row[data-href]').forEach(function (tr) {
+        var href = tr.getAttribute('data-href');
+        tr.addEventListener('click', function (e) {
+          if (e.target.closest && e.target.closest('a')) return;
+          window.location.href = href;
+        });
+        tr.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            window.location.href = href;
+          }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

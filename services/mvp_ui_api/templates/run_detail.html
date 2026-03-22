@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8"/>
+  <title>Run {{ run.id }}</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 1.5rem; max-width: 56rem; line-height: 1.45; color: #1a1a1a; }
+    nav { margin-bottom: 0.75rem; display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; }
+    nav a { color: #06c; text-decoration: none; }
+    nav a:hover { text-decoration: underline; }
+    .breadcrumb { color: #555; font-size: 0.95rem; }
+    .breadcrumb a { color: #06c; }
+    h1 { font-size: 1.35rem; margin: 0.25rem 0 0.75rem; }
+    .meta { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; margin-bottom: 1rem; font-size: 0.9rem; }
+    .badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.85rem; font-weight: 600; }
+    .badge-ok { background: #e8f5e9; color: #1b5e20; }
+    .badge-warn { background: #fff8e1; color: #f57f17; }
+    .badge-err { background: #ffebee; color: #b71c1c; }
+    .badge-neutral { background: #f0f0f0; color: #333; }
+    .run-nav { margin-left: auto; display: flex; gap: 0.75rem; }
+    .run-nav a { white-space: nowrap; }
+    section { margin-bottom: 1.5rem; }
+    h2 { font-size: 1.1rem; margin-top: 0; margin-bottom: 0.5rem; }
+    h3 { font-size: 0.95rem; margin: 0.75rem 0 0.35rem; color: #333; }
+    .json-block {
+      background: #f4f4f4;
+      padding: 0.75rem 1rem;
+      overflow: auto;
+      max-height: 24rem;
+      font-size: 0.82rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      line-height: 1.45;
+      border-radius: 6px;
+      margin: 0.35rem 0;
+    }
+    .muted { color: #666; font-size: 0.9rem; }
+    .episode-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; margin-bottom: 0.75rem; }
+    code#ep-id { font-size: 0.9rem; word-break: break-all; }
+    button.copy-btn {
+      font: inherit;
+      font-size: 0.8rem;
+      padding: 0.2rem 0.55rem;
+      cursor: pointer;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: #fff;
+    }
+    button.copy-btn:hover { background: #f8f8f8; }
+    .artifacts { display: flex; flex-direction: column; gap: 0.35rem; }
+    .artifacts a { color: #06c; }
+    .art-desc { color: #666; font-size: 0.85rem; margin-left: 0.25rem; }
+    dl.summary-dl { display: grid; grid-template-columns: auto 1fr; gap: 0.25rem 1rem; margin: 0.5rem 0 0.75rem; font-size: 0.9rem; }
+    dl.summary-dl dt { color: #555; margin: 0; }
+    dl.summary-dl dd { margin: 0; }
+    details.rule { border: 1px solid #ddd; border-radius: 6px; margin-bottom: 0.5rem; padding: 0.5rem 0.75rem; }
+    details.rule summary { cursor: pointer; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <nav>
+    <span class="breadcrumb"><a href="/runs">Runs</a> <span aria-hidden="true">›</span> Run #{{ run.id }}</span>
+    <a href="/kb">KB</a>
+    <span class="run-nav">
+      {% if nav_newer_id %}<a href="/runs/{{ nav_newer_id }}" title="列表中較新的一筆">↑ 較新 #{{ nav_newer_id }}</a>{% endif %}
+      {% if nav_older_id %}<a href="/runs/{{ nav_older_id }}" title="列表中較舊的一筆">↓ 較舊 #{{ nav_older_id }}</a>{% endif %}
+    </span>
+  </nav>
+
+  <h1>Run #{{ run.id }}</h1>
+  <div class="meta">
+    <span><strong>狀態</strong>
+      {% set st = run.status or "" %}
+      {% if st == "ok" %}<span class="badge badge-ok">{{ st }}</span>
+      {% elif st in ("failed", "error", "pending") %}<span class="badge badge-{% if st == 'pending' %}warn{% else %}err{% endif %}">{{ st }}</span>
+      {% else %}<span class="badge badge-neutral">{{ st or "—" }}</span>{% endif %}
+    </span>
+    <span><strong>來源</strong> <span class="badge badge-neutral">{{ run.source or "—" }}</span></span>
+    {% if run.created_at %}<span><strong>建立時間</strong> {{ run.created_at }}</span>{% endif %}
+    {% if run.run_id %}<span><strong>run_id</strong> <code>{{ run.run_id }}</code></span>{% endif %}
+    {% if run.alert_count is not none %}<span><strong>alerts</strong> {{ run.alert_count }}</span>{% endif %}
+  </div>
+
+  <section aria-labelledby="ep-heading">
+    <h2 id="ep-heading">Episode</h2>
+    <div class="episode-row">
+      <strong>episode_id</strong>
+      <code id="ep-id">{{ run.episode_id }}</code>
+      <button type="button" class="copy-btn" id="copy-ep" title="複製 episode_id">複製</button>
+    </div>
+    <div class="artifacts">
+      <div>
+        <a href="/api/artifacts/{{ episode_id }}/evidence" target="_blank" rel="noopener">evidence.json</a>
+        <span class="art-desc">C1 取證產物</span>
+      </div>
+      <div>
+        <a href="/api/artifacts/{{ episode_id }}/writeback" target="_blank" rel="noopener">writeback.json</a>
+        <span class="art-desc">C3 回寫產物</span>
+      </div>
+      <div>
+        <a href="/api/artifacts/{{ episode_id }}/issues" target="_blank" rel="noopener">issues.json</a>
+        <span class="art-desc">問題／驗證輸出</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>layerc_summary</h2>
+    {% set ls = run.layerc_summary %}
+    {% if ls and ls is mapping %}
+      <dl class="summary-dl">
+        {% if ls.get("c1_retrieve") %}<dt>C1 retrieve</dt><dd><span class="badge badge-{% if ls.get('c1_retrieve') == 'ok' %}ok{% else %}err{% endif %}">{{ ls.get("c1_retrieve") }}</span></dd>{% endif %}
+        {% if ls.get("c2_analyze") %}<dt>C2 analyze</dt><dd><span class="badge badge-{% if ls.get('c2_analyze') == 'ok' %}ok{% elif ls.get('c2_analyze') in ('failed', 'error') %}err{% else %}warn{% endif %}">{{ ls.get("c2_analyze") }}</span></dd>{% endif %}
+        {% if ls.get("c3_writeback") %}<dt>C3 writeback</dt><dd><span class="badge badge-{% if ls.get('c3_writeback') == 'ok' %}ok{% elif 'fail' in (ls.get('c3_writeback') or '')|string|lower %}err{% else %}neutral{% endif %}">{{ ls.get("c3_writeback") }}</span></dd>{% endif %}
+        {% if ls.get("triage_rules") %}<dt>triage_rules</dt><dd>{{ ls.get("triage_rules") | join(", ") }}</dd>{% endif %}
+        {% if ls.get("rules_count") is not none %}<dt>rules_count</dt><dd>{{ ls.get("rules_count") }}</dd>{% endif %}
+        {% if ls.get("writeback_mode") %}<dt>writeback_mode</dt><dd>{{ ls.get("writeback_mode") }}</dd>{% endif %}
+      </dl>
+      <details>
+        <summary>完整 JSON</summary>
+        <pre class="json-block">{{ ls | tojson(indent=2) }}</pre>
+      </details>
+    {% elif ls %}
+      <pre class="json-block">{{ ls | tojson(indent=2) }}</pre>
+    {% else %}
+      <p class="muted">無 layerc_summary 資料</p>
+    {% endif %}
+    {% set ls_err = (run.layerc_summary or {}).get('c3_writeback_error') %}
+    {% if ls_err %}
+      <p class="muted" style="margin-top:0.75rem;color:#b71c1c"><strong>C3 錯誤摘要：</strong> {{ ls_err }}</p>
+    {% endif %}
+  </section>
+
+  <section aria-labelledby="c3-heading">
+    <h2 id="c3-heading">C3 — 回寫結果</h2>
+    <p class="muted" style="margin-top:0">以下為寫入 <code>analysis_runs.writeback_json</code> 的內容（與產物檔通常一致）。</p>
+    {% if run.writeback_json %}
+      <pre class="json-block">{{ run.writeback_json | tojson(indent=2) }}</pre>
+      <p class="muted"><a href="/api/artifacts/{{ episode_id }}/writeback" target="_blank" rel="noopener">另開 writeback.json（產物檔）</a></p>
+    {% else %}
+      <p class="muted">此筆 run 在資料庫中尚無 <code>writeback_json</code>（可能未執行 C3、僅 dry_run 未存檔、或管線略過回寫）。</p>
+      <p class="muted">若本機已有產物，仍可嘗試：<a href="/api/artifacts/{{ episode_id }}/writeback" target="_blank" rel="noopener">從 repo 讀取 writeback.json</a>（檔案不存在時會 404）。</p>
+    {% endif %}
+  </section>
+
+  <section>
+    <h2>C2 — 依規則（triage → hunt → response）</h2>
+    {% if by_rule %}
+      {% for rid, bundle in by_rule.items() %}
+      <details class="rule">
+        <summary>規則 <code>{{ rid }}</code></summary>
+        <h3>triage</h3>
+        {% if bundle.triage %}
+          <pre class="json-block">{{ bundle.triage | tojson(indent=2) }}</pre>
+        {% else %}
+          <p class="muted">無 triage 資料</p>
+        {% endif %}
+        <h3>hunt_planner</h3>
+        {% if bundle.hunt_planner %}
+          <pre class="json-block">{{ bundle.hunt_planner | tojson(indent=2) }}</pre>
+        {% else %}
+          <p class="muted">無 hunt_planner 資料</p>
+        {% endif %}
+        <h3>response_advisor</h3>
+        {% if bundle.response_advisor %}
+          <pre class="json-block">{{ bundle.response_advisor | tojson(indent=2) }}</pre>
+        {% else %}
+          <p class="muted">無 response_advisor 資料</p>
+        {% endif %}
+      </details>
+      {% endfor %}
+    {% else %}
+      {% set ao = run.agent_outputs_json %}
+      {% if ao %}
+        <h3>triage（單一規則 / 舊格式）</h3>
+        {% if ao.triage %}
+          <pre class="json-block">{{ ao.triage | tojson(indent=2) }}</pre>
+        {% else %}
+          <p class="muted">無 triage 資料</p>
+        {% endif %}
+        <h3>hunt_planner</h3>
+        {% if ao.hunt_planner %}
+          <pre class="json-block">{{ ao.hunt_planner | tojson(indent=2) }}</pre>
+        {% else %}
+          <p class="muted">無 hunt_planner 資料</p>
+        {% endif %}
+        <h3>response_advisor</h3>
+        {% if ao.response_advisor %}
+          <pre class="json-block">{{ ao.response_advisor | tojson(indent=2) }}</pre>
+        {% else %}
+          <p class="muted">無 response_advisor 資料</p>
+        {% endif %}
+      {% else %}
+        <p class="muted">無 agent_outputs_json</p>
+      {% endif %}
+    {% endif %}
+  </section>
+
+  <details>
+    <summary>完整列資料（JSON）</summary>
+    <pre class="json-block">{{ run | tojson(indent=2) }}</pre>
+  </details>
+
+  <script>
+    (function () {
+      var btn = document.getElementById("copy-ep");
+      var el = document.getElementById("ep-id");
+      if (!btn || !el) return;
+      btn.addEventListener("click", function () {
+        var t = el.textContent || "";
+        navigator.clipboard.writeText(t).then(function () {
+          var o = btn.textContent;
+          btn.textContent = "已複製";
+          setTimeout(function () { btn.textContent = o; }, 1500);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

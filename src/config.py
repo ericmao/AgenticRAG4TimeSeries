@@ -18,6 +18,8 @@ class Config(BaseModel):
     OPENCTI_URL: str = ""
     OPENCTI_TOKEN: str = ""
     KB_PATH: str = "kb/"
+    # off | merge | db_only — 見 src/kb/loader.py
+    KB_DB_MODE: str = "off"
     RUN_MODE: str = "dry_run"
     PROMPT_VERSION: str = "v0.1"
 
@@ -47,6 +49,9 @@ class Config(BaseModel):
             OPENCTI_URL=os.environ.get("OPENCTI_URL", "").strip(),
             OPENCTI_TOKEN=os.environ.get("OPENCTI_TOKEN", "").strip(),
             KB_PATH=os.environ.get("KB_PATH", "kb/").strip() or "kb/",
+            KB_DB_MODE=(
+                os.environ.get("KB_DB_MODE", "off").strip().lower() or "off"
+            ),
             RUN_MODE=os.environ.get("RUN_MODE", "dry_run").strip() or "dry_run",
             PROMPT_VERSION=os.environ.get("PROMPT_VERSION", "v0.1").strip() or "v0.1",
             LLM_BACKEND=os.environ.get("LLM_BACKEND", "ollama").strip() or "ollama",

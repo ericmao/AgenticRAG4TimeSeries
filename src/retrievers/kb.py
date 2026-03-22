@@ -54,20 +54,19 @@ def _score_chunk(chunk: str, query_strings: list[str]) -> float:
     return min(1.0, hits / len(query_strings)) if query_strings else 0.0
 
 
-def _load_kb_docs(kb_path: Path) -> list[tuple[str, str]]:
-    """Load all *.md and *.txt under kb_path. Return list of (filename, content)."""
-    if not kb_path.is_dir():
-        return []
+def _load_kb_docs(repo_root: Path) -> list[tuple[str, str]]:
+    """與 MVP UI 一致：依 KB_DB_MODE 合併檔案與 DB。回傳 (rel_path, content)。"""
+    from src.kb.loader import list_document_rows, read_kb_body
+
+    rows = list_document_rows(repo_root)
     out: list[tuple[str, str]] = []
-    for ext in ("*.md", "*.txt"):
-        for f in sorted(kb_path.rglob(ext)):
-            if f.is_file():
-                try:
-                    content = f.read_text(encoding="utf-8", errors="replace")
-                    name = str(f.relative_to(kb_path))
-                    out.append((name, content))
-                except Exception:
-                    continue
+    for r in rows:
+        rel = r["rel_path"]
+        try:
+            content = read_kb_body(repo_root, rel)
+        except FileNotFoundError:
+            continue
+        out.append((rel, content))
     return sorted(out, key=lambda x: x[0])
 
 
@@ -83,13 +82,15 @@ def retrieve_from_kb(
     Load docs from KB_PATH, chunk, score by keyword match, return EvidenceItem candidates.
     source="kb", kind="snippet", provenance includes query and retrieved_at_ms.
     """
+    repo_root = Path(__file__).resolve().parents[2]
     if kb_path is None:
         from src.config import get_config
+
         cfg = get_config()
-        repo_root = Path(__file__).resolve().parents[2]
         kb_path = repo_root / cfg.KB_PATH.strip().lstrip("/")
     retrieved_at_ms = int(time.time() * 1000)
-    docs = _load_kb_docs(kb_path)
+    _ = kb_path  # 保留參數供呼叫端／測試相容；列舉以 repo_root + KB_DB_MODE 為準
+    docs = _load_kb_docs(repo_root)
     candidates: list[EvidenceItem] = []
     for filename, content in docs:
         chunks = _chunk_text(content, size=chunk_size, overlap=chunk_overlap)

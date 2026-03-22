@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8"/>
+  <title>編輯 KB — {{ rel_path }}</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 1.5rem; max-width: 56rem; }
+    nav a { margin-right: 1rem; }
+    label { display: block; margin-top: 0.75rem; font-size: 0.9rem; }
+    textarea {
+      width: 100%; min-height: 24rem; font-family: ui-monospace, monospace;
+      font-size: 0.88rem; padding: 0.6rem; box-sizing: border-box;
+    }
+    .meta { color: #555; font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .row { margin: 0.75rem 0; display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+    input[type="password"], input[type="text"] { min-width: 12rem; padding: 0.35rem 0.5rem; }
+    #status { margin-top: 0.5rem; font-size: 0.9rem; }
+    .err { color: #a00; }
+    .ok { color: #060; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="/kb">← KB 列表</a>
+    <a href="/kb/p/{{ href_path }}">預覽</a>
+  </nav>
+  <h1>編輯 KB</h1>
+  <p class="meta"><code>{{ rel_path }}</code> · 目前版本：<strong id="verDisplay">{{ version }}</strong></p>
+  <p class="meta">儲存需設定 <code>MVP_UI_API_KEY</code> 時在下方填入相同金鑰（Header <code>X-API-Key</code>）。新建 DB 覆寫時請使用 <code>expected_version: 0</code>。</p>
+  <label for="apiKey">X-API-Key（可選，與伺服器設定一致時必填）</label>
+  <input type="password" id="apiKey" autocomplete="off" placeholder="若未設定 MVP_UI_API_KEY 可留空"/>
+  <label for="editor">編輯者（可選）</label>
+  <input type="text" id="editor" placeholder="顯示名稱"/>
+  <label for="body">內容</label>
+  <textarea id="body">{{ body_text }}</textarea>
+  <div class="row">
+    <button type="button" id="saveBtn">儲存</button>
+    <span id="status"></span>
+  </div>
+  <script>
+    const relPath = {{ rel_path | tojson }};
+    let currentVersion = {{ version | int }};
+    const verDisplay = document.getElementById('verDisplay');
+    const statusEl = document.getElementById('status');
+    function apiPath() {
+      return '/api/kb/documents/' + relPath.split('/').map(encodeURIComponent).join('/');
+    }
+    document.getElementById('saveBtn').addEventListener('click', async () => {
+      statusEl.textContent = '';
+      statusEl.className = '';
+      const headers = { 'Content-Type': 'application/json' };
+      const k = document.getElementById('apiKey').value.trim();
+      if (k) headers['X-API-Key'] = k;
+      const editor = document.getElementById('editor').value.trim() || null;
+      const body = document.getElementById('body').value;
+      try {
+        const res = await fetch(apiPath(), {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify({
+            body,
+            expected_version: currentVersion,
+            editor,
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.status === 409) {
+          const cv = data.detail && data.detail.current_version;
+          statusEl.textContent = '版本衝突，請重新載入頁面。伺服器目前版本：' + (cv != null ? cv : '?');
+          statusEl.className = 'err';
+          return;
+        }
+        if (!res.ok) {
+          statusEl.textContent = res.status + ' ' + (data.detail || JSON.stringify(data));
+          statusEl.className = 'err';
+          return;
+        }
+        currentVersion = data.version;
+        verDisplay.textContent = data.version;
+        statusEl.textContent = '已儲存。';
+        statusEl.className = 'ok';
+      } catch (e) {
+        statusEl.textContent = String(e);
+        statusEl.className = 'err';
+      }
+    });
+  </script>
+</body>
+</html>

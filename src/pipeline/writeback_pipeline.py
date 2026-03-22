@@ -13,6 +13,7 @@ from src.contracts.evidence import EvidenceSet
 from src.contracts.writeback import WritebackPatch
 from src.memory.decision_bundle import save_decision_bundle
 from src.memory.opencti_writeback import apply_patch, build_writeback_patch
+from src.pipeline.triage_rules import sanitize_rule_id_for_key
 from src.utils.audit_logger import audit_log
 
 
@@ -49,12 +50,26 @@ def run_writeback(
     agents_dir = root / "outputs" / "agents"
     agent_outputs: Dict[str, AgentOutput] = {}
     outputs_raw: Dict[str, dict] = {}
-    for agent_id in ("triage", "hunt_planner", "response_advisor"):
-        p = agents_dir / f"{episode_id}_{agent_id}.json"
-        if p.exists():
-            data = json.loads(p.read_text(encoding="utf-8"))
-            agent_outputs[agent_id] = AgentOutput.model_validate(data)
-            outputs_raw[agent_id] = data
+
+    by_rule_path = agents_dir / f"{episode_id}_by_rule.json"
+    if by_rule_path.exists():
+        by_rule_raw = json.loads(by_rule_path.read_text(encoding="utf-8"))
+        for rule_id, bundle in by_rule_raw.items():
+            sk = sanitize_rule_id_for_key(str(rule_id))
+            for agent_id in ("triage", "hunt_planner", "response_advisor"):
+                if agent_id not in bundle:
+                    continue
+                data = bundle[agent_id]
+                key = f"{agent_id}_{sk}"
+                agent_outputs[key] = AgentOutput.model_validate(data)
+                outputs_raw[key] = data if isinstance(data, dict) else {}
+    else:
+        for agent_id in ("triage", "hunt_planner", "response_advisor"):
+            p = agents_dir / f"{episode_id}_{agent_id}.json"
+            if p.exists():
+                data = json.loads(p.read_text(encoding="utf-8"))
+                agent_outputs[agent_id] = AgentOutput.model_validate(data)
+                outputs_raw[agent_id] = data
     if not agent_outputs:
         raise FileNotFoundError(f"No agent outputs under {agents_dir} for episode_id={episode_id}; run analyze first.")
 

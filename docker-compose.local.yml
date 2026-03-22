@@ -1,0 +1,78 @@
+# 本機一鍵：Postgres + MVP Web UI（analysis_runs）
+#
+# 使用方式：
+#   docker compose -f docker-compose.local.yml up -d --build
+#   瀏覽器開 http://localhost:8765/runs
+#
+# 預設資料庫（可改環境變數覆寫）：
+#   postgresql://agentic:agentic@postgres:5432/agentic
+#
+# 停止：docker compose -f docker-compose.local.yml down
+# 資料卷保留：down -v 會刪除 Postgres 資料
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: agenticrag-postgres-local
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: agentic
+      POSTGRES_PASSWORD: agentic
+      POSTGRES_DB: agentic
+    ports:
+      - "5435:5432"
+    volumes:
+      - agentic_local_pg:/var/lib/postgresql/data
+      - ./deployments/sql/analysis_runs_schema.sql:/docker-entrypoint-initdb.d/01_analysis_runs.sql:ro
+      - ./deployments/sql/wazuh_ingest_state_schema.sql:/docker-entrypoint-initdb.d/02_wazuh_ingest_state.sql:ro
+      - ./deployments/sql/kb_documents_schema.sql:/docker-entrypoint-initdb.d/03_kb_documents.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agentic -d agentic"]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+
+  mvp_ui:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: agenticrag-mvp-ui-local
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8765:8765"
+    working_dir: /app
+    environment:
+      PYTHONPATH: /app
+      DATABASE_URL: postgresql://agentic:agentic@postgres:5432/agentic
+      # Layer C／離線腳本用 Ollama；/kb 列表僅讀 LLM 快取，不在請求時呼叫
+      # LLM_OLLAMA_PRIMARY: http://192.168.1.203:11434
+      # LLM_MODEL: llama3.2:latest
+      # LLM_TIMEOUT: "120"
+      # 可選：MVP_UI_API_KEY=secret
+      # KB 群組一句話（可選）
+      # KB_UI_GROUP_LLM: "0"
+      # KB_UI_LLM_MAX_GROUPS: "30"
+      # KB 線上編輯（Postgres）：merge=檔案+DB 覆蓋同路徑；db_only=僅 DB；off=僅檔案
+      # KB_DB_MODE: "merge"
+    # 可選：在本機建立 .env 並加入 MVP_UI_API_KEY=... 等
+    # env_file:
+    #   - .env
+    command:
+      [
+        "uvicorn",
+        "services.mvp_ui_api.app:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8765",
+      ]
+    volumes:
+      - ./outputs:/app/outputs
+      - .:/app
+
+volumes:
+  agentic_local_pg:
+    name: agenticrag4timeseries_local_pg

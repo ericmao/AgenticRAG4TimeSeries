@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8"/>
+  <title>找不到 Run</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 1.5rem; max-width: 40rem; }
+    nav a { margin-right: 1rem; }
+    .hint { color: #555; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="/runs">← Runs 列表</a>
+    <a href="/kb">KB</a>
+  </nav>
+  <h1>找不到 Run #{{ run_id }}</h1>
+  <p>此 id 在資料庫中不存在，或已刪除。</p>
+  <p class="hint"><a href="/runs">回到 Analysis runs</a> 查看有效列表。</p>
+</body>
+</html>
