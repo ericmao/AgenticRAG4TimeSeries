@@ -32,7 +32,7 @@ def get_llm_for_layer_c():
             "LLM_BACKEND=ollama requires langchain-ollama. Install: pip install langchain-ollama"
         )
     base_url = (cfg.LLM_OLLAMA_PRIMARY or "http://127.0.0.1:11434").strip()
-    model = (cfg.LLM_MODEL or "llama3.2:latest").strip()
+    model = (cfg.LLM_MODEL or "llama3:latest").strip()
     return ChatOllama(
         base_url=base_url,
         model=model,

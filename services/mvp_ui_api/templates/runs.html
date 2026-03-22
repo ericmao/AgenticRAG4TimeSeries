@@ -75,19 +75,164 @@
     .action-link { font-size: 0.85rem; white-space: nowrap; }
     .action-link a { color: #06c; }
     .num { text-align: right; font-variant-numeric: tabular-nums; }
+    .wazuh-panel {
+      border: 1px solid #c5cae9;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1rem;
+      background: #f3e5f5;
+      font-size: 0.9rem;
+    }
+    .wazuh-panel h2 { font-size: 1rem; margin: 0 0 0.5rem; color: #4a148c; }
+    .wazuh-panel .row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem; margin-bottom: 0.5rem; }
+    .wazuh-panel label { display: inline-flex; align-items: center; gap: 0.35rem; }
+    .wazuh-panel input[type="text"], .wazuh-panel input[type="number"], .wazuh-panel input[type="password"] {
+      font: inherit; padding: 0.25rem 0.45rem; border: 1px solid #aaa; border-radius: 4px; min-width: 8rem;
+    }
+    .wazuh-panel button {
+      font: inherit; padding: 0.35rem 0.85rem; cursor: pointer; border-radius: 6px;
+      border: 1px solid #6a1b9a; background: #7b1fa2; color: #fff; font-weight: 600;
+    }
+    .wazuh-panel button:hover { background: #6a1b9a; }
+    .wazuh-panel button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .wazuh-panel .hint { font-size: 0.82rem; color: #555; margin: 0.35rem 0 0; }
+    .wazuh-msg { margin-top: 0.5rem; font-size: 0.88rem; }
+    .wazuh-msg.ok { color: #1b5e20; }
+    .wazuh-msg.err { color: #b71c1c; }
+    .pipeline-modal {
+      display: none; position: fixed; inset: 0; z-index: 1000;
+      background: rgba(0,0,0,0.45); align-items: center; justify-content: center; padding: 1rem;
+    }
+    .pipeline-modal[aria-hidden="false"] { display: flex; }
+    .pipeline-modal-inner {
+      background: #fff; border-radius: 10px; max-width: 42rem; width: 100%; max-height: 85vh;
+      display: flex; flex-direction: column; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    }
+    .pipeline-modal-inner h3 { margin: 0; padding: 1rem 1rem 0.5rem; font-size: 1.1rem; }
+    .pipeline-modal-inner pre {
+      margin: 0 1rem 1rem; padding: 0.75rem; background: #f4f4f4; border-radius: 6px;
+      overflow: auto; max-height: 50vh; font-size: 0.8rem; white-space: pre-wrap; word-break: break-word;
+    }
+    .pipeline-modal-inner .modal-actions { padding: 0 1rem 1rem; }
+    .pipeline-modal-inner button { font: inherit; padding: 0.4rem 1rem; cursor: pointer; border-radius: 6px; border: 1px solid #ccc; background: #fff; }
+    .pipeline-modal-inner button:hover { background: #f5f5f5; }
+    .action-link .action-sep { color: #999; margin: 0 0.15rem; }
+    .btn-graphs {
+      font: inherit; font-size: 0.82rem; padding: 0.2rem 0.45rem; margin-left: 0.25rem;
+      cursor: pointer; border-radius: 6px; border: 1px solid #90caf9; background: #e3f2fd; color: #0d47a1; font-weight: 600;
+    }
+    .btn-graphs:hover { background: #bbdefb; }
+    .btn-graphs[aria-expanded="true"] { background: #0d47a1; color: #fff; border-color: #0d47a1; }
+    tr.graphs-row td { background: #fafafa; border-top: none; padding: 0.75rem; vertical-align: top; }
+    .graphs-embed { display: grid; grid-template-columns: 1fr; gap: 0.75rem; }
+    @media (min-width: 1100px) {
+      .graphs-embed { grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+    }
+    .graph-panel {
+      border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; background: #f8fafc;
+      min-height: 520px; display: flex; flex-direction: column;
+    }
+    .graph-panel-title {
+      font-size: 0.75rem; font-weight: 700; padding: 0.35rem 0.5rem; background: #eceff1; color: #37474f; border-bottom: 1px solid #e0e0e0;
+    }
+    .graph-panel iframe {
+      flex: 0 0 auto;
+      width: 100%;
+      height: 500px;
+      min-height: 500px;
+      border: 0;
+      background: #f1f5f9;
+      display: block;
+    }
+    .graphs-embed .graph-open-full { font-size: 0.78rem; padding: 0.25rem 0.5rem 0.5rem; }
+    .graphs-embed .graph-open-full a { color: #06c; }
+    .graphs-legend {
+      margin-bottom: 0.75rem;
+      padding: 0.5rem 0.65rem 0.6rem;
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      color: #37474f;
+      line-height: 1.35;
+    }
+    .graphs-legend-title {
+      font-weight: 700;
+      margin: 0 0 0.45rem 0;
+      font-size: 0.82rem;
+      color: #263238;
+    }
+    .graphs-legend-items {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem 0.85rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .graphs-legend-items li {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      white-space: nowrap;
+    }
+    .graphs-legend-swatch {
+      display: inline-block;
+      width: 0.55rem;
+      height: 0.55rem;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
   </style>
 </head>
 <body>
   <nav class="top">
     <span class="breadcrumb"><strong>Runs</strong> — 分析紀錄</span>
     <a href="/kb">KB</a>
+    <a href="/agents">Agents</a>
     <a href="/api/runs">JSON API</a>
   </nav>
 
   <h1>Analysis runs</h1>
 
+  <section class="wazuh-panel" aria-labelledby="wazuh-heading">
+    <h2 id="wazuh-heading">手動啟動 Wazuh 分析</h2>
+    <p class="hint">於伺服器上背景執行 <code>mvp_wazuh_episode_pg.py</code>（需已設定 <code>WAZUH_INDEXER_*</code>、<code>DATABASE_URL</code> 等，與 macOS／Windows 本機 CLI 相同）。若設定了 <code>MVP_UI_API_KEY</code>，請填 API 金鑰。</p>
+    <form id="wazuh-form">
+      <div class="row">
+        <label>目標 IP <input type="text" name="target_ip" required placeholder="10.0.0.5" autocomplete="off"/></label>
+        <label>時間窗（小時） <input type="number" name="hours" value="24" min="1" max="168"/></label>
+        <label><input type="checkbox" name="match_all"/> match-all（不篩 IP）</label>
+        <label><input type="checkbox" name="evidenceops"/> EvidenceOps 多代理</label>
+        <label><input type="checkbox" name="no_writeback"/> 略過 writeback</label>
+        <label><input type="checkbox" name="skip_db"/> 不寫 DB</label>
+      </div>
+      <div class="row">
+        <label>writeback 模式
+          <select name="writeback_mode">
+            <option value="dry_run" selected>dry_run</option>
+            <option value="review">review</option>
+            <option value="auto">auto</option>
+          </select>
+        </label>
+        <label>API Key（選填） <input type="password" name="api_key" autocomplete="off" placeholder="若伺服器有設定"/></label>
+        <button type="submit" id="wazuh-btn">啟動分析</button>
+      </div>
+      <div id="wazuh-msg" class="wazuh-msg" role="status" aria-live="polite"></div>
+    </form>
+    <div id="pipeline-modal" class="pipeline-modal" aria-hidden="true" role="dialog" aria-labelledby="pipeline-modal-title">
+      <div class="pipeline-modal-inner">
+        <h3 id="pipeline-modal-title">管線結果</h3>
+        <pre id="pipeline-modal-body"></pre>
+        <div class="modal-actions">
+          <button type="button" id="pipeline-modal-close">關閉</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <div class="pipeline-intro" role="region" aria-label="管線說明">
-    <p>每筆 run 對應一則 episode 的完整分析紀錄：<strong>取證（C1）</strong> → <strong>規則研判（C2）</strong> → <strong>回寫（C3）</strong>。點選列或「查看」可開啟詳情與 JSON 產物連結。</p>
+    <p>每筆 run 對應一則 episode 的完整分析紀錄：<strong>取證（C1）</strong> → <strong>規則研判（C2）</strong> → <strong>回寫（C3）</strong>。點選列或「查看」可開啟詳情與 JSON 產物連結。點「<strong>調查</strong>」可在列下方展開 <strong>案件關聯圖／證據引用圖／決策路徑圖</strong> 三張力導圖（嵌入 Investigation Graph）。</p>
     <div class="pipeline-steps" aria-hidden="true">
       <span>C1 取證</span><span class="arrow">→</span>
       <span>C2 研判</span><span class="arrow">→</span>
@@ -140,7 +285,7 @@
       {% set c1 = ls.get('c1_retrieve') if ls else none %}
       {% set c2 = ls.get('c2_analyze') if ls else none %}
       {% set c3 = ls.get('c3_writeback') if ls else none %}
-      <tr class="run-row" data-href="/runs/{{ r.id }}" tabindex="0" role="link" aria-label="Run {{ r.id }}，點擊開啟詳情">
+      <tr class="run-row" data-href="/runs/{{ r.id }}" data-run-id="{{ r.id }}" tabindex="0" role="link" aria-label="Run {{ r.id }}，點擊開啟詳情">
         <td class="id-cell"><a href="/runs/{{ r.id }}" onclick="event.stopPropagation()">{{ r.id }}</a></td>
         <td class="time-cell" data-iso="{{ r.created_at_iso }}">
           <span class="rel">—</span>
@@ -162,7 +307,60 @@
             —
           {% endif %}
         </td>
-        <td class="action-link"><a href="/runs/{{ r.id }}" onclick="event.stopPropagation()">查看</a></td>
+        <td class="action-link">
+          <a href="/runs/{{ r.id }}" onclick="event.stopPropagation()">查看</a>
+          <span class="action-sep" aria-hidden="true">·</span>
+          <button type="button" class="btn-graphs" data-run-id="{{ r.id }}" aria-expanded="false" aria-controls="graphs-embed-{{ r.id }}" title="展開案件關聯圖、證據引用圖、決策路徑圖">調查</button>
+        </td>
+      </tr>
+      <tr class="graphs-row" id="graphs-embed-{{ r.id }}" hidden data-expanded="false">
+        <td colspan="11">
+          <div class="graphs-legend" role="region" aria-label="力導圖圖示說明">
+            <p class="graphs-legend-title">圖示說明</p>
+            <ul class="graphs-legend-items">
+              <li><span class="graphs-legend-swatch" style="background:#3b82f6"></span>Episode（低／雜訊）</li>
+              <li><span class="graphs-legend-swatch" style="background:#eab308"></span>Episode（可疑）</li>
+              <li><span class="graphs-legend-swatch" style="background:#ef4444"></span>Episode（高／嚴重）</li>
+              <li><span class="graphs-legend-swatch" style="background:#a855f7"></span>Agent</li>
+              <li><span class="graphs-legend-swatch" style="background:#22c55e"></span>證據</li>
+              <li><span class="graphs-legend-swatch" style="background:#3b82f6"></span>行動（蒐集）</li>
+              <li><span class="graphs-legend-swatch" style="background:#eab308"></span>行動（觀察名單）</li>
+              <li><span class="graphs-legend-swatch" style="background:#f97316"></span>行動（隔離）</li>
+              <li><span class="graphs-legend-swatch" style="background:#38bdf8"></span>實體</li>
+              <li><span class="graphs-legend-swatch" style="background:#f97316"></span>防護欄</li>
+            </ul>
+          </div>
+          <div class="graphs-embed" role="region" aria-label="Run {{ r.id }} 調查預覽">
+            <div class="graph-panel">
+              <div class="graph-panel-title">案件關聯圖</div>
+              <iframe
+                title="案件關聯圖 — run {{ r.id }}"
+                data-src="/investigations/graph?run_id={{ r.id }}&amp;mode=case&amp;embedded=1"
+                loading="lazy"
+                referrerpolicy="same-origin"
+              ></iframe>
+            </div>
+            <div class="graph-panel">
+              <div class="graph-panel-title">證據引用圖</div>
+              <iframe
+                title="證據引用圖 — run {{ r.id }}"
+                data-src="/investigations/graph?run_id={{ r.id }}&amp;mode=citation&amp;embedded=1"
+                loading="lazy"
+                referrerpolicy="same-origin"
+              ></iframe>
+            </div>
+            <div class="graph-panel">
+              <div class="graph-panel-title">決策路徑圖</div>
+              <iframe
+                title="決策路徑圖 — run {{ r.id }}"
+                data-src="/investigations/graph?run_id={{ r.id }}&amp;mode=decision&amp;embedded=1"
+                loading="lazy"
+                referrerpolicy="same-origin"
+              ></iframe>
+            </div>
+          </div>
+          <p class="graph-open-full"><a href="/investigations/graph?run_id={{ r.id }}" target="_blank" rel="noopener">完整 Investigation Graph（新分頁）</a></p>
+        </td>
       </tr>
       {% endfor %}
     </tbody>
@@ -171,6 +369,133 @@
 
   <script>
     (function () {
+      var form = document.getElementById("wazuh-form");
+      var msg = document.getElementById("wazuh-msg");
+      var btn = document.getElementById("wazuh-btn");
+      var modal = document.getElementById("pipeline-modal");
+      var modalTitle = document.getElementById("pipeline-modal-title");
+      var modalBody = document.getElementById("pipeline-modal-body");
+      var modalClose = document.getElementById("pipeline-modal-close");
+      function showPipelineModal(title, text) {
+        if (!modal || !modalTitle || !modalBody) {
+          window.alert(title + "\n\n" + text);
+          return;
+        }
+        modalTitle.textContent = title;
+        modalBody.textContent = text;
+        modal.setAttribute("aria-hidden", "false");
+      }
+      function hidePipelineModal() {
+        if (modal) modal.setAttribute("aria-hidden", "true");
+      }
+      if (modalClose) modalClose.addEventListener("click", hidePipelineModal);
+      if (modal) {
+        modal.addEventListener("click", function (e) {
+          if (e.target === modal) hidePipelineModal();
+        });
+      }
+      function pollPipelineJob(jobId, msgEl, btnEl) {
+        var attempts = 0;
+        var maxAttempts = 600;
+        function tick() {
+          attempts++;
+          fetch("/api/pipeline-jobs/" + encodeURIComponent(jobId))
+            .then(function (r) {
+              if (!r.ok) throw new Error("HTTP " + r.status);
+              return r.json();
+            })
+            .then(function (j) {
+              if (j.status === "running") {
+                if (msgEl) msgEl.textContent = "執行中…（" + attempts + "）完成後會顯示結果";
+                if (attempts >= maxAttempts) {
+                  if (btnEl) btnEl.disabled = false;
+                  showPipelineModal("逾時", "仍為 running，請稍後重新整理 /runs 或查看容器日誌。\njob_id: " + jobId);
+                  return;
+                }
+                setTimeout(tick, 1500);
+                return;
+              }
+              if (btnEl) btnEl.disabled = false;
+              var ok = j.status === "ok";
+              var title = ok ? "Wazuh 管線完成" : "Wazuh 管線失敗";
+              var lines = [];
+              lines.push("狀態: " + (j.status || "—"));
+              if (j.exit_code !== undefined && j.exit_code !== null) lines.push("exit_code: " + j.exit_code);
+              if (j.finished_at) lines.push("結束時間: " + j.finished_at);
+              if (j.error) lines.push("錯誤: " + j.error);
+              if (j.stderr && String(j.stderr).trim()) lines.push("--- stderr ---\n" + String(j.stderr).slice(0, 12000));
+              else if (j.stdout && String(j.stdout).trim() && !ok) lines.push("--- stdout ---\n" + String(j.stdout).slice(0, 8000));
+              if (ok) lines.push("\n若已寫入 DB，可重新整理本頁查看 wazuh 列。");
+              showPipelineModal(title, lines.join("\n"));
+            })
+            .catch(function (err) {
+              if (attempts >= maxAttempts) {
+                if (btnEl) btnEl.disabled = false;
+                showPipelineModal("輪詢失敗", String(err && err.message ? err.message : err));
+                return;
+              }
+              setTimeout(tick, 2000);
+            });
+        }
+        setTimeout(tick, 400);
+      }
+      if (form && msg && btn) {
+        form.addEventListener("submit", function (e) {
+          e.preventDefault();
+          var fd = new FormData(form);
+          var body = {
+            target_ip: (fd.get("target_ip") || "").trim(),
+            hours: parseInt(fd.get("hours") || "24", 10) || 24,
+            match_all: fd.get("match_all") === "on",
+            evidenceops: fd.get("evidenceops") === "on",
+            no_writeback: fd.get("no_writeback") === "on",
+            skip_db: fd.get("skip_db") === "on",
+            writeback_mode: fd.get("writeback_mode") || "dry_run"
+          };
+          if (!body.target_ip) {
+            msg.className = "wazuh-msg err";
+            msg.textContent = "請填目標 IP";
+            return;
+          }
+          var headers = { "Content-Type": "application/json" };
+          var ak = (fd.get("api_key") || "").trim();
+          if (ak) headers["X-API-Key"] = ak;
+          btn.disabled = true;
+          msg.className = "wazuh-msg";
+          msg.textContent = "送出中…";
+          fetch("/api/runs/wazuh", {
+            method: "POST",
+            headers: headers,
+            body: JSON.stringify(body)
+          })
+            .then(function (r) {
+              return r.json().then(function (j) {
+                return { ok: r.ok, status: r.status, body: j };
+              });
+            })
+            .then(function (o) {
+              if (o.ok) {
+                msg.className = "wazuh-msg ok";
+                msg.textContent = (o.body && o.body.message) ? o.body.message : "已排程背景執行…";
+                var jid = o.body && o.body.job_id;
+                if (jid) {
+                  pollPipelineJob(jid, msg, btn);
+                } else {
+                  btn.disabled = false;
+                }
+              } else {
+                msg.className = "wazuh-msg err";
+                msg.textContent = "失敗（HTTP " + o.status + "）：" + (o.body && (o.body.detail || o.body.message) ? JSON.stringify(o.body.detail || o.body) : "請檢查 API Key 與伺服器日誌");
+                btn.disabled = false;
+              }
+            })
+            .catch(function (err) {
+              msg.className = "wazuh-msg err";
+              msg.textContent = "請求失敗：" + (err && err.message ? err.message : String(err));
+              btn.disabled = false;
+            });
+        });
+      }
       function relTime(iso) {
         if (!iso) return;
         var t = Date.parse(iso);
@@ -193,13 +518,38 @@
       document.querySelectorAll('tr.run-row[data-href]').forEach(function (tr) {
         var href = tr.getAttribute('data-href');
         tr.addEventListener('click', function (e) {
-          if (e.target.closest && e.target.closest('a')) return;
+          if (e.target.closest && e.target.closest('a, button')) return;
           window.location.href = href;
         });
         tr.addEventListener('keydown', function (e) {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             window.location.href = href;
+          }
+        });
+      });
+      document.querySelectorAll('.btn-graphs').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          var id = btn.getAttribute('aria-controls');
+          if (!id) return;
+          var graphsRow = document.getElementById(id);
+          if (!graphsRow || !graphsRow.classList.contains('graphs-row')) return;
+          var open = graphsRow.getAttribute('data-expanded') === 'true';
+          if (open) {
+            graphsRow.hidden = true;
+            graphsRow.setAttribute('data-expanded', 'false');
+            btn.setAttribute('aria-expanded', 'false');
+          } else {
+            graphsRow.hidden = false;
+            graphsRow.setAttribute('data-expanded', 'true');
+            btn.setAttribute('aria-expanded', 'true');
+            graphsRow.querySelectorAll('iframe[data-src]').forEach(function (ifr) {
+              if (!ifr.getAttribute('src')) {
+                ifr.setAttribute('src', ifr.getAttribute('data-src'));
+              }
+            });
           }
         });
       });

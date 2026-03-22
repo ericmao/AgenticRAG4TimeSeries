@@ -1,0 +1,8 @@
+# 複製為專案根目錄 .env（或合併進既有 .env）
+# Wazuh 手動分析 / mvp_wazuh_episode_pg.py 會讀取；rsync 部署預設排除 .env，請在遠端主機自行建立。
+# Indexer API 為 :9200，非 Dashboard。
+
+WAZUH_INDEXER_URL=https://192.168.1.203:9200
+WAZUH_INDEXER_USERNAME=admin
+WAZUH_INDEXER_PASSWORD=change_me
+WAZUH_VERIFY_SSL=0

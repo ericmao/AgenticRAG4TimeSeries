@@ -60,6 +60,8 @@
   <nav>
     <span class="breadcrumb"><a href="/runs">Runs</a> <span aria-hidden="true">›</span> Run #{{ run.id }}</span>
     <a href="/kb">KB</a>
+    <a href="/agents">Agents</a>
+    <a href="/investigations/graph?run_id={{ run.id }}">Investigation Graph</a>
     <span class="run-nav">
       {% if nav_newer_id %}<a href="/runs/{{ nav_newer_id }}" title="列表中較新的一筆">↑ 較新 #{{ nav_newer_id }}</a>{% endif %}
       {% if nav_older_id %}<a href="/runs/{{ nav_older_id }}" title="列表中較舊的一筆">↓ 較舊 #{{ nav_older_id }}</a>{% endif %}
@@ -100,6 +102,17 @@
         <a href="/api/artifacts/{{ episode_id }}/issues" target="_blank" rel="noopener">issues.json</a>
         <span class="art-desc">問題／驗證輸出</span>
       </div>
+      {% set ls0 = run.layerc_summary or {} %}
+      {% if ls0.get('paths', {}).get('decision_bundle') %}
+      <div>
+        <a href="/api/evidenceops/{{ episode_id }}/decision_bundle" target="_blank" rel="noopener">decision_bundle.json</a>
+        <span class="art-desc">EvidenceOps 決策包</span>
+      </div>
+      <div>
+        <a href="/api/evidenceops/{{ episode_id }}/case_summary" target="_blank" rel="noopener">case_summary.json</a>
+        <span class="art-desc">多代理摘要（triage／entity／cti 等）</span>
+      </div>
+      {% endif %}
     </div>
   </section>
 
@@ -109,6 +122,7 @@
     {% if ls and ls is mapping %}
       <dl class="summary-dl">
         {% if ls.get("c1_retrieve") %}<dt>C1 retrieve</dt><dd><span class="badge badge-{% if ls.get('c1_retrieve') == 'ok' %}ok{% else %}err{% endif %}">{{ ls.get("c1_retrieve") }}</span></dd>{% endif %}
+        {% if ls.get("c2_mode") %}<dt>C2 模式</dt><dd><code>{{ ls.get("c2_mode") }}</code>（evidenceops 為多代理編排）</dd>{% endif %}
         {% if ls.get("c2_analyze") %}<dt>C2 analyze</dt><dd><span class="badge badge-{% if ls.get('c2_analyze') == 'ok' %}ok{% elif ls.get('c2_analyze') in ('failed', 'error') %}err{% else %}warn{% endif %}">{{ ls.get("c2_analyze") }}</span></dd>{% endif %}
         {% if ls.get("c3_writeback") %}<dt>C3 writeback</dt><dd><span class="badge badge-{% if ls.get('c3_writeback') == 'ok' %}ok{% elif 'fail' in (ls.get('c3_writeback') or '')|string|lower %}err{% else %}neutral{% endif %}">{{ ls.get("c3_writeback") }}</span></dd>{% endif %}
         {% if ls.get("triage_rules") %}<dt>triage_rules</dt><dd>{{ ls.get("triage_rules") | join(", ") }}</dd>{% endif %}
@@ -154,6 +168,14 @@
         {% else %}
           <p class="muted">無 triage 資料</p>
         {% endif %}
+        {% if bundle.entity_investigation %}
+        <h3>entity_investigation</h3>
+          <pre class="json-block">{{ bundle.entity_investigation | tojson(indent=2) }}</pre>
+        {% endif %}
+        {% if bundle.cti_correlation %}
+        <h3>cti_correlation</h3>
+          <pre class="json-block">{{ bundle.cti_correlation | tojson(indent=2) }}</pre>
+        {% endif %}
         <h3>hunt_planner</h3>
         {% if bundle.hunt_planner %}
           <pre class="json-block">{{ bundle.hunt_planner | tojson(indent=2) }}</pre>
@@ -176,6 +198,14 @@
           <pre class="json-block">{{ ao.triage | tojson(indent=2) }}</pre>
         {% else %}
           <p class="muted">無 triage 資料</p>
+        {% endif %}
+        {% if ao.entity_investigation %}
+        <h3>entity_investigation</h3>
+          <pre class="json-block">{{ ao.entity_investigation | tojson(indent=2) }}</pre>
+        {% endif %}
+        {% if ao.cti_correlation %}
+        <h3>cti_correlation</h3>
+          <pre class="json-block">{{ ao.cti_correlation | tojson(indent=2) }}</pre>
         {% endif %}
         <h3>hunt_planner</h3>
         {% if ao.hunt_planner %}

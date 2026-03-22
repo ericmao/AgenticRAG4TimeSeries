@@ -40,6 +40,26 @@ def _sha256_short(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8", errors="replace")).hexdigest()[:32]
 
 
+def truncate_llm_file_summary_for_display(
+    text: str,
+    *,
+    max_words: int = 200,
+    max_chars: int = 1200,
+) -> str:
+    """
+    /kb 列表顯示用：以空白分詞至多 max_words 個英文詞；全文長度不超過 max_chars（無空白長句時防爆）。
+    """
+    s = (text or "").strip()
+    if not s:
+        return ""
+    parts = s.split()
+    if len(parts) > max_words:
+        s = " ".join(parts[:max_words]) + "…"
+    if len(s) > max_chars:
+        s = s[:max_chars].rstrip() + "…"
+    return s
+
+
 def enrich_files_llm_summaries(repo_root: Path, groups: list[dict[str, Any]]) -> None:
     """
     就地為每個 file 列加上 llm_file_summary：僅從快取讀取，不呼叫 LLM。

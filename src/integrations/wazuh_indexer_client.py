@@ -177,6 +177,9 @@ def hit_to_event(hit: dict[str, Any]) -> dict[str, Any]:
     level = int(rule.get("level") or 0)
     conf = min(1.0, max(0.0, level / 15.0)) if level else 0.5
     groups = rule.get("groups") or []
+    group_strs = [str(g) for g in groups] if isinstance(groups, list) else []
+    mitre_raw = rule.get("mitre")
+    mitre_hit = bool(mitre_raw) if isinstance(mitre_raw, list) else bool(mitre_raw)
     domain = str(groups[0]) if isinstance(groups, list) and groups else "internal"
     artifact: dict[str, Any] = {
         "host": agent_name,
@@ -196,6 +199,9 @@ def hit_to_event(hit: dict[str, Any]) -> dict[str, Any]:
         "confidence": conf,
         "domain": domain[:120],
         "event_id": str(hit.get("_id") or ""),
+        "rule_level": level,
+        "rule_groups": group_strs,
+        "mitre_hit": mitre_hit,
     }
 
 

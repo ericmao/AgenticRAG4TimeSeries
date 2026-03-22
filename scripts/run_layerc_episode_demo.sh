@@ -24,5 +24,9 @@ python3 -m src.cli writeback --episode "$EPISODE_PATH"
 # python3 -m src.cli eval --episodes_dir "$(dirname "$EPISODE_PATH")" --limit 1
 # python3 -m src.cli demo_report --episode "$EPISODE_PATH"
 
+# 5) Optional — SenseL EvidenceOps multi-agent orchestrator (entity/CTI + same writeback path):
+#    PYTHONPATH=. python3 scripts/run_layerc_case_orchestrator.py --episode "$EPISODE_PATH"
+#    See docs/LAYER_C_EVIDENCEOPS.md
+
 echo "Done. Outputs: outputs/evidence/, outputs/agents/, outputs/writeback/, outputs/audit/"
 echo "To POST decision bundle to Control Plane: implement client in connectors and call POST /api/v1/cases/writeback"

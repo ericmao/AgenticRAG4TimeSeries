@@ -96,3 +96,145 @@ def run_layer_c_pipeline(
 
     agent_out = agent_payload if status == "ok" else None
     return status, writeback_payload, evidence_payload, summary, agent_out, issues_payload
+
+
+def run_evidenceops_layer_c_pipeline(
+    episode: Any,
+    ep_path: Path,
+    episode_id: str,
+    *,
+    repo_root: Optional[Path] = None,
+    do_writeback: bool = True,
+    writeback_mode: str = "dry_run",
+    triage_rules: Optional[list[str]] = None,
+) -> tuple[
+    str,
+    Optional[dict[str, Any]],
+    Optional[dict[str, Any]],
+    dict[str, Any],
+    Optional[dict[str, Any]],
+    Optional[dict[str, Any]],
+]:
+    """
+    C1 retrieve → EvidenceOps CaseOrchestrator（多代理）→ decision_bundle / case_summary →（可選）C3 writeback。
+
+    回傳格式與 run_layer_c_pipeline 相同；layerc_summary 含 evidenceops_* 欄位。
+    """
+    import json
+
+    root = repo_root or default_repo_root()
+    from src.contracts.episode import Episode
+    from src.contracts.evidence import EvidenceSet
+    from src.layer_c.orchestrator.case_orchestrator import ORCHESTRATOR_VERSION, CaseOrchestrator
+    from src.layer_c.reports.case_summary_builder import build_case_summary
+    from src.layer_c.schemas.decision_bundle import RiskContextInput
+    from src.layer_c.writeback.decision_bundle_builder import build_and_save_evidenceops_bundle
+    from src.layer_c.writeback.writeback_client import run_writeback_dry_run
+    from src.pipeline.retrieve_evidence import build_evidence_set
+    from src.pipeline.triage_rules import resolve_triage_rules
+
+    summary: dict[str, Any] = {
+        "c1_retrieve": "pending",
+        "c2_analyze": "pending",
+        "c2_mode": "evidenceops",
+        "c3_writeback": "skipped",
+        "paths": {},
+        "evidenceops_orchestrator": ORCHESTRATOR_VERSION,
+    }
+
+    build_evidence_set(ep_path)
+    evidence_path = root / "outputs" / "evidence" / f"{episode_id}.json"
+    summary["c1_retrieve"] = "ok" if evidence_path.exists() else "failed"
+    summary["paths"]["evidence"] = str(evidence_path.relative_to(root))
+
+    evidence_payload: Optional[dict[str, Any]] = None
+    if evidence_path.exists():
+        evidence_payload = json.loads(evidence_path.read_text(encoding="utf-8"))
+
+    ep_model = episode if isinstance(episode, Episode) else Episode.model_validate(episode)
+    rules = resolve_triage_rules(ep_model, explicit=triage_rules)
+    rule_id = rules[0] if rules else "default"
+    summary["triage_rules"] = list(rules)
+    summary["rules_count"] = len(rules)
+    summary["evidenceops_rule_id"] = rule_id
+
+    if not evidence_path.exists():
+        summary["c2_analyze"] = "skipped_no_evidence"
+        return "failed", None, evidence_payload, summary, None, {"error": "evidence_missing"}
+
+    evidence_set = EvidenceSet.model_validate(json.loads(evidence_path.read_text(encoding="utf-8")))
+    risk = RiskContextInput.from_episode(ep_model)
+
+    state = None
+    eo_status = "failed"
+    try:
+        orch = CaseOrchestrator(repo_root=root)
+        state, eo_status = orch.run(
+            ep_model,
+            evidence_set,
+            risk=risk,
+            hypothesis=None,
+            rule_id=rule_id,
+            write_outputs=True,
+        )
+    except Exception as e:
+        summary["c2_analyze"] = "failed"
+        summary["evidenceops_error"] = str(e)[:800]
+        return "failed", None, evidence_payload, summary, None, {"error": str(e)[:800], "source": "evidenceops"}
+
+    if state is None:
+        summary["c2_analyze"] = "failed"
+        return "failed", None, evidence_payload, summary, None, {"error": "no_case_state", "source": "evidenceops"}
+
+    bundle_dump = {k: v.model_dump() for k, v in state.by_agent_id.items()}
+    agent_payload: dict[str, Any] = {
+        "by_rule": {rule_id: bundle_dump},
+        "triage": bundle_dump.get("triage"),
+        "hunt_planner": bundle_dump.get("hunt_planner"),
+        "response_advisor": bundle_dump.get("response_advisor"),
+        "evidenceops": True,
+    }
+    if bundle_dump.get("entity_investigation"):
+        agent_payload["entity_investigation"] = bundle_dump["entity_investigation"]
+    if bundle_dump.get("cti_correlation"):
+        agent_payload["cti_correlation"] = bundle_dump["cti_correlation"]
+
+    issues_payload: Optional[dict[str, Any]] = None
+    if eo_status != "ok":
+        summary["c2_analyze"] = "failed"
+        summary["paths"]["agents_by_rule"] = f"outputs/agents/{episode_id}_by_rule.json"
+        err_list = (state.routing or {}).get("validation_errors") or []
+        issues_payload = {"validation_errors": err_list, "routing": state.routing, "source": "evidenceops"}
+        return "failed", None, evidence_payload, summary, agent_payload, issues_payload
+
+    summary["c2_analyze"] = "ok"
+    summary["paths"]["agents_by_rule"] = f"outputs/agents/{episode_id}_by_rule.json"
+
+    build_and_save_evidenceops_bundle(state, ep_model, evidence_set, root, save_legacy_audit=True)
+    _, cs_path = build_case_summary(state, root)
+    summary["paths"]["decision_bundle"] = str(
+        (root / "outputs" / "evidenceops" / f"decision_bundle_{episode_id}.json").relative_to(root)
+    )
+    summary["paths"]["case_summary"] = str(cs_path.relative_to(root))
+
+    writeback_payload: Optional[dict[str, Any]] = None
+    if do_writeback:
+        try:
+            if writeback_mode != "dry_run":
+                from src.pipeline.writeback_pipeline import run_writeback
+
+                _patch, wb_path = run_writeback(str(ep_path), mode=writeback_mode)
+            else:
+                _patch, wb_path = run_writeback_dry_run(ep_path, mode="dry_run")
+            summary["c3_writeback"] = "ok"
+            summary["paths"]["writeback"] = str(wb_path.relative_to(root))
+            summary["writeback_mode"] = writeback_mode
+            if wb_path.exists():
+                writeback_payload = json.loads(wb_path.read_text(encoding="utf-8"))
+        except Exception as e:
+            summary["c3_writeback"] = "failed"
+            summary["c3_writeback_error"] = str(e)[:800]
+    else:
+        summary["c3_writeback"] = "skipped"
+
+    return "ok", writeback_payload, evidence_payload, summary, agent_payload, issues_payload

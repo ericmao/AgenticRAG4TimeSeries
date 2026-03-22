@@ -18,6 +18,7 @@ Layer C 階段（與 src/cli retrieve / analyze / writeback 對齊）:
   PYTHONPATH=. python scripts/mvp_wazuh_episode_pg.py --target-ip 192.168.1.203 --match-all --writeback-mode dry_run
   PYTHONPATH=. python scripts/mvp_wazuh_episode_pg.py --target-ip 10.0.0.5 --dry-run
   PYTHONPATH=. python scripts/mvp_wazuh_episode_pg.py ... --no-writeback   # 僅 C1+C2
+  PYTHONPATH=. python scripts/mvp_wazuh_episode_pg.py --target-ip 192.168.1.203 --evidenceops   # EvidenceOps 多代理（CaseOrchestrator）
 """
 from __future__ import annotations
 
@@ -40,13 +41,17 @@ try:
 except ImportError:
     pass
 
+from src.integrations.wazuh_env import apply_wazuh_env_from_dotenv
+
+apply_wazuh_env_from_dotenv(REPO_ROOT)
+
 from src.integrations.wazuh_indexer_client import (
     build_episode_from_events,
     build_ip_query,
     hit_to_event,
     indexer_post,
 )
-from src.pipeline.layer_c_run import run_layer_c_pipeline
+from src.pipeline.layer_c_run import run_evidenceops_layer_c_pipeline, run_layer_c_pipeline
 from src.storage.analysis_runs_store import insert_analysis_run
 
 
@@ -87,6 +92,11 @@ def main() -> int:
         "--triage-rules",
         default=None,
         help="逗號分隔 rule_id；未指定則用 TRIAGE_RULES 或 episode.sequence_tags",
+    )
+    parser.add_argument(
+        "--evidenceops",
+        action="store_true",
+        help="走 EvidenceOps 多代理編排（triage→entity→cti→hunt→response），產出 decision_bundle / case_summary",
     )
     args = parser.parse_args()
 
@@ -151,17 +161,30 @@ def main() -> int:
         print("dry-run: 略過 retrieve / analyze / writeback / DB")
         return 0
 
-    status, writeback_payload, evidence_payload, layerc_summary, agent_payload, issues_payload = (
-        run_layer_c_pipeline(
-            episode,
-            ep_path,
-            episode_id,
-            repo_root=REPO_ROOT,
-            do_writeback=not args.no_writeback,
-            writeback_mode=args.writeback_mode,
-            triage_rules=triage_rules,
+    if args.evidenceops:
+        status, writeback_payload, evidence_payload, layerc_summary, agent_payload, issues_payload = (
+            run_evidenceops_layer_c_pipeline(
+                episode,
+                ep_path,
+                episode_id,
+                repo_root=REPO_ROOT,
+                do_writeback=not args.no_writeback,
+                writeback_mode=args.writeback_mode,
+                triage_rules=triage_rules,
+            )
         )
-    )
+    else:
+        status, writeback_payload, evidence_payload, layerc_summary, agent_payload, issues_payload = (
+            run_layer_c_pipeline(
+                episode,
+                ep_path,
+                episode_id,
+                repo_root=REPO_ROOT,
+                do_writeback=not args.no_writeback,
+                writeback_mode=args.writeback_mode,
+                triage_rules=triage_rules,
+            )
+        )
 
     print(
         "Layer C: "

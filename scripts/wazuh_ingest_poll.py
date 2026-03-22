@@ -4,9 +4,18 @@ Wazuh Indexer 輪詢：依 wazuh_ingest_state 游標拉取新 alerts → Episode
 
 環境變數：WAZUH_INDEXER_URL、WAZUH_INDEXER_USERNAME、WAZUH_INDEXER_PASSWORD、WAZUH_VERIFY_SSL、DATABASE_URL
 
+自動 episode 準則（可選，macOS／Windows 皆透過環境變數或 --auto-criteria）：
+  WAZUH_AUTO_EPISODE_CRITERIA=1  啟用 OR 條件（亦可用 --auto-criteria）
+  WAZUH_AUTO_MIN_RULE_LEVEL=12   單筆等級 ≥ 此值則通過（0=關閉此條）
+  WAZUH_AUTO_MIN_ALERT_COUNT=5   本批筆數 ≥ 此值（0=關閉）
+  WAZUH_AUTO_MIN_DISTINCT_RULES=3  不同 rule.id 數（0=關閉）
+  WAZUH_AUTO_MITRE_TRIGGERS=1    任一有 MITRE 則通過
+  WAZUH_AUTO_DEDUP_MINUTES=60    同一 target_ip 最短間隔分鐘（0=關閉；仍會前進游標）
+
 用法:
   PYTHONPATH=. python scripts/wazuh_ingest_poll.py --target-ip 192.168.1.203 --match-all --once
   PYTHONPATH=. python scripts/wazuh_ingest_poll.py --target-ip 10.0.0.5 --interval-sec 300
+  PYTHONPATH=. python scripts/wazuh_ingest_poll.py --target-ip 10.0.0.5 --auto-criteria --once
 """
 from __future__ import annotations
 
@@ -15,6 +24,7 @@ import os
 import sys
 import time
 import uuid
+from dataclasses import replace
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -28,6 +38,16 @@ try:
 except ImportError:
     pass
 
+from src.integrations.wazuh_env import apply_wazuh_env_from_dotenv
+
+apply_wazuh_env_from_dotenv(REPO_ROOT)
+
+from src.integrations.wazuh_auto_criteria import (
+    WazuhAutoCriteria,
+    dedup_minutes_from_env,
+    dedup_should_skip_last_run,
+    should_create_episode,
+)
 from src.integrations.wazuh_indexer_client import (
     build_episode_from_events,
     build_ip_query,
@@ -36,7 +56,7 @@ from src.integrations.wazuh_indexer_client import (
     indexer_post,
     max_event_ts_ms,
 )
-from src.pipeline.layer_c_run import run_layer_c_pipeline
+from src.pipeline.layer_c_run import run_evidenceops_layer_c_pipeline, run_layer_c_pipeline
 from src.storage.analysis_runs_store import insert_analysis_run
 from src.storage.ingest_state_store import get_state, upsert_state
 
@@ -59,6 +79,8 @@ def run_poll_cycle(
     skip_db: bool,
     key_name: str,
     triage_rules: list[str] | None = None,
+    evidenceops: bool = False,
+    auto_criteria: bool = False,
 ) -> int:
     base = os.environ.get("WAZUH_INDEXER_URL", "").strip()
     user = os.environ.get("WAZUH_INDEXER_USERNAME", "").strip()
@@ -99,6 +121,30 @@ def run_poll_cycle(
         print("poll: no new alerts")
         return 0
 
+    new_max = max_event_ts_ms(events)
+
+    dedup_min = dedup_minutes_from_env()
+    if database_url and dedup_min > 0:
+        from src.storage.analysis_runs_store import get_latest_wazuh_created_at_for_target
+
+        last_at = get_latest_wazuh_created_at_for_target(database_url, target_ip)
+        if dedup_should_skip_last_run(last_at, dedup_min):
+            if new_max > last_ms:
+                upsert_state(database_url, key_name, last_timestamp_ms=new_max)
+            print(f"poll: dedup skip target_ip={target_ip} within {dedup_min}m (cursor advanced)")
+            return 0
+
+    crit = WazuhAutoCriteria.from_env()
+    if auto_criteria:
+        crit = replace(crit, enabled=True)
+    if crit.enabled:
+        ok, crit_detail = should_create_episode(events, crit)
+        if not ok:
+            if database_url and new_max > last_ms:
+                upsert_state(database_url, key_name, last_timestamp_ms=new_max)
+            print(f"poll: auto criteria skip {crit_detail}")
+            return 0
+
     run_id = f"wazuh-poll-{uuid.uuid4().hex[:16]}"
     episode, episode_id = build_episode_from_events(target_ip, run_id, events, match_all=match_all)
 
@@ -107,19 +153,31 @@ def run_poll_cycle(
     ep_path = ep_dir / f"{episode_id}.json"
     ep_path.write_text(episode.model_dump_json(indent=2), encoding="utf-8")
 
-    status, writeback_payload, evidence_payload, layerc_summary, agent_payload, issues_payload = (
-        run_layer_c_pipeline(
-            episode,
-            ep_path,
-            episode_id,
-            repo_root=REPO_ROOT,
-            do_writeback=not no_writeback,
-            writeback_mode=writeback_mode,
-            triage_rules=triage_rules,
+    if evidenceops:
+        status, writeback_payload, evidence_payload, layerc_summary, agent_payload, issues_payload = (
+            run_evidenceops_layer_c_pipeline(
+                episode,
+                ep_path,
+                episode_id,
+                repo_root=REPO_ROOT,
+                do_writeback=not no_writeback,
+                writeback_mode=writeback_mode,
+                triage_rules=triage_rules,
+            )
         )
-    )
+    else:
+        status, writeback_payload, evidence_payload, layerc_summary, agent_payload, issues_payload = (
+            run_layer_c_pipeline(
+                episode,
+                ep_path,
+                episode_id,
+                repo_root=REPO_ROOT,
+                do_writeback=not no_writeback,
+                writeback_mode=writeback_mode,
+                triage_rules=triage_rules,
+            )
+        )
 
-    new_max = max_event_ts_ms(events)
     if database_url and new_max > last_ms:
         upsert_state(database_url, key_name, last_timestamp_ms=new_max)
 
@@ -176,6 +234,16 @@ def main() -> int:
         default=None,
         help="逗號分隔 rule_id；未指定則用 TRIAGE_RULES 或 episode.sequence_tags",
     )
+    parser.add_argument(
+        "--evidenceops",
+        action="store_true",
+        help="走 EvidenceOps 多代理（CaseOrchestrator）",
+    )
+    parser.add_argument(
+        "--auto-criteria",
+        action="store_true",
+        help="啟用自動 episode 行為準則（等同 WAZUH_AUTO_EPISODE_CRITERIA=1，門檻見環境變數）",
+    )
     args = parser.parse_args()
 
     triage_rules = None
@@ -195,6 +263,8 @@ def main() -> int:
             skip_db=args.skip_db,
             key_name=key,
             triage_rules=triage_rules,
+            evidenceops=args.evidenceops,
+            auto_criteria=args.auto_criteria,
         )
 
     while True:
@@ -208,6 +278,8 @@ def main() -> int:
             skip_db=args.skip_db,
             key_name=key,
             triage_rules=triage_rules,
+            evidenceops=args.evidenceops,
+            auto_criteria=args.auto_criteria,
         )
         if rc != 0:
             print(f"poll cycle exit {rc}", file=sys.stderr)

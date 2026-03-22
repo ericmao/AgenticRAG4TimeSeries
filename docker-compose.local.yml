@@ -26,6 +26,7 @@ services:
       - ./deployments/sql/analysis_runs_schema.sql:/docker-entrypoint-initdb.d/01_analysis_runs.sql:ro
       - ./deployments/sql/wazuh_ingest_state_schema.sql:/docker-entrypoint-initdb.d/02_wazuh_ingest_state.sql:ro
       - ./deployments/sql/kb_documents_schema.sql:/docker-entrypoint-initdb.d/03_kb_documents.sql:ro
+      - ./deployments/sql/kb_group_llm_schema.sql:/docker-entrypoint-initdb.d/04_kb_group_llm.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U agentic -d agentic"]
       interval: 3s
@@ -41,16 +42,21 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    # 容器內連主機 Ollama（本機 :11434）需用 host.docker.internal；Linux 需 host-gateway
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "8765:8765"
     working_dir: /app
     environment:
       PYTHONPATH: /app
       DATABASE_URL: postgresql://agentic:agentic@postgres:5432/agentic
-      # Layer C／離線腳本用 Ollama；/kb 列表僅讀 LLM 快取，不在請求時呼叫
-      # LLM_OLLAMA_PRIMARY: http://192.168.1.203:11434
-      # LLM_MODEL: llama3.2:latest
-      # LLM_TIMEOUT: "120"
+      # 容器內 127.0.0.1 不是宿主機；請指向 host.docker.internal（或 .env 覆寫）
+      LLM_OLLAMA_PRIMARY: http://host.docker.internal:11434
+      LLM_MODEL: llama3:latest
+      LLM_TIMEOUT: "120"
+      # Wazuh：勿在此用 ${VAR:-} 傳空字串，否則子程序 load_dotenv 無法覆寫。請在專案根目錄建立 .env（見 env.example），掛載為 /app/.env 後由 mvp_wazuh_episode_pg.py 讀取。
+      # /kb 列表僅讀 LLM 快取；批次 kb_refresh_group_llm.py 在容器內可連宿主 Ollama
       # 可選：MVP_UI_API_KEY=secret
       # KB 群組一句話（可選）
       # KB_UI_GROUP_LLM: "0"

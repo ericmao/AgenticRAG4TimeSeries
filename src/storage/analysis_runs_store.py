@@ -213,6 +213,28 @@ def get_adjacent_run_ids(database_url: str, run_id: int) -> tuple[Optional[int],
         conn.close()
 
 
+def get_latest_wazuh_created_at_for_target(database_url: str, target_ip: str) -> Optional[Any]:
+    """同一 target_ip 最近一次 wazuh run 的 created_at（供自動 dedup）；無則 None。"""
+    import psycopg2
+
+    ensure_analysis_runs_schema(database_url)
+    conn = psycopg2.connect(database_url)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT created_at FROM analysis_runs
+                WHERE source = 'wazuh' AND target_ip = %s
+                ORDER BY created_at DESC LIMIT 1
+                """,
+                (target_ip,),
+            )
+            row = cur.fetchone()
+            return row[0] if row else None
+    finally:
+        conn.close()
+
+
 def get_run_by_episode_id(database_url: str, episode_id: str) -> Optional[dict[str, Any]]:
     import psycopg2
     from psycopg2.extras import RealDictCursor

@@ -26,7 +26,7 @@ class Config(BaseModel):
     # LLM: default local Ollama
     LLM_BACKEND: str = "ollama"
     LLM_OLLAMA_PRIMARY: str = "http://127.0.0.1:11434"
-    LLM_MODEL: str = "llama3.1:latest"
+    LLM_MODEL: str = "llama3:latest"
     LLM_TIMEOUT: int = 120
     LLM_TEMPERATURE: float = 0.1
 
@@ -56,7 +56,7 @@ class Config(BaseModel):
             PROMPT_VERSION=os.environ.get("PROMPT_VERSION", "v0.1").strip() or "v0.1",
             LLM_BACKEND=os.environ.get("LLM_BACKEND", "ollama").strip() or "ollama",
             LLM_OLLAMA_PRIMARY=os.environ.get("LLM_OLLAMA_PRIMARY", "http://127.0.0.1:11434").strip() or "http://127.0.0.1:11434",
-            LLM_MODEL=os.environ.get("LLM_MODEL", "llama3.1:latest").strip() or "llama3.1:latest",
+            LLM_MODEL=os.environ.get("LLM_MODEL", "llama3:latest").strip() or "llama3:latest",
             LLM_TIMEOUT=int(os.environ.get("LLM_TIMEOUT", "120").strip() or "120"),
             LLM_TEMPERATURE=float(os.environ.get("LLM_TEMPERATURE", "0.1").strip() or "0.1"),
             USE_TIME_SERIES_SIGNALS=_bool("USE_TIME_SERIES_SIGNALS", False),

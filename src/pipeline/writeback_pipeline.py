@@ -56,13 +56,16 @@ def run_writeback(
         by_rule_raw = json.loads(by_rule_path.read_text(encoding="utf-8"))
         for rule_id, bundle in by_rule_raw.items():
             sk = sanitize_rule_id_for_key(str(rule_id))
-            for agent_id in ("triage", "hunt_planner", "response_advisor"):
-                if agent_id not in bundle:
+            # Core three + EvidenceOps agents (entity_investigation, cti_correlation) when present
+            for agent_id, data in bundle.items():
+                if not isinstance(data, dict):
                     continue
-                data = bundle[agent_id]
                 key = f"{agent_id}_{sk}"
-                agent_outputs[key] = AgentOutput.model_validate(data)
-                outputs_raw[key] = data if isinstance(data, dict) else {}
+                try:
+                    agent_outputs[key] = AgentOutput.model_validate(data)
+                    outputs_raw[key] = data
+                except Exception:
+                    continue
     else:
         for agent_id in ("triage", "hunt_planner", "response_advisor"):
             p = agents_dir / f"{episode_id}_{agent_id}.json"

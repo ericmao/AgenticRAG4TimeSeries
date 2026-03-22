@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/images/logo-avocado-sensel.png" alt="Avocado SenseL" width="200" />
+</p>
+
 # Core Agentic RAG for CERT Anomaly Analysis
 
 ## 專案概述
@@ -5,6 +9,12 @@
 這是一個專注於核心 Agentic RAG 功能的專案，用於 CERT 內部威脅數據的異常分析。系統整合了多種異常檢測技術；**Layer C 管線**提供 Episode 驅動的檢索、分析、Writeback 與評估，並可選 GPT-4o 或本地 LLM（見下方「此次更新」與架構文件）。
 
 **架構詳情**：請見 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)（合約、資料流、模組職責、CLI、目錄與產物路徑）。
+
+### MVP Web UI 預覽
+
+**手動啟動 Wazuh 分析**、**Runs** 列表，以及列上的 **調查**（展開案件關聯圖、證據引用圖、決策路徑圖）：
+
+![MVP Web UI — Wazuh 與調查圖](docs/images/mvp-runs-wazuh-investigation.png)
 
 ## 此次更新摘要
 

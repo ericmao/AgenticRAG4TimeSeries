@@ -10,8 +10,9 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+# Python build dirs（僅 repo 根目錄，避免誤傷 packages/**/src/lib）
+/lib/
+/lib64/
 parts/
 sdist/
 var/
@@ -71,6 +72,10 @@ data/
 !tests/samples/episodes/*.json
 !tests/demo/
 !tests/demo/*.json
+!packages/**/package.json
+!packages/**/package-lock.json
+!packages/**/tsconfig.json
+!packages/**/tsconfig*.json
 *.pkl
 *.pickle
 
@@ -86,3 +91,7 @@ data/
 
 # EMQX API key (use emqx_default_api_key.conf.example as template)
 docs/control_plane_spec/deployments/layerA/emqx_default_api_key.conf
+
+# JS / Vite workspace (packages/mvp-investigation-spa, layerc-graph-ui)
+packages/**/node_modules/
+packages/**/dist/

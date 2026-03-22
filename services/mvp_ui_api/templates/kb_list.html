@@ -62,19 +62,44 @@
     }
     .file-overview {
       display: block;
-      margin: 0.25rem 0 0 0;
-      padding-left: 0.5rem;
-      border-left: 3px solid #cce;
+      margin: 0.35rem 0 0 0;
+      padding: 0.4rem 0.55rem 0.5rem;
+      border-left: 3px solid #9ab;
+      background: #f3f4f6;
+      border-radius: 0 4px 4px 0;
       font-size: 0.86rem;
-      color: #333;
-      line-height: 1.45;
-      max-width: 52rem;
+      color: #222;
+      line-height: 1.5;
+      max-width: 56rem;
     }
+    .file-overview .llm-desc-label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: #456;
+      text-transform: uppercase;
+      margin-bottom: 0.25rem;
+    }
+    .kb-group-llm {
+      margin: 0.5rem 0 0.35rem 0;
+      padding: 0.5rem 0.65rem;
+      font-size: 0.88rem;
+      line-height: 1.5;
+      color: #222;
+      background: #f5f8fa;
+      border-radius: 4px;
+      border: 1px solid #dde;
+      max-width: 56rem;
+    }
+    .kb-group-llm p { margin: 0.35rem 0; }
+    .kb-group-llm strong { color: #145; }
   </style>
 </head>
 <body>
   <nav>
     <a href="/runs">Runs</a>
+    <a href="/agents">Agents</a>
     <a href="/kb">KB</a>
     <a href="/api/kb/files">JSON（平面）</a>
     <a href="/api/kb/groups">JSON（群組）</a>
@@ -82,7 +107,7 @@
   <h1>Knowledge base</h1>
   <p class="meta">路徑：<code>{{ kb_root_display }}</code>（環境變數 <code>KB_PATH</code>，相對 repo 根）</p>
   <p class="meta"><strong>操作</strong>：點擊每個群組列（▸／▾）可<strong>展開或收合</strong>該群檔案清單；第一群預設展開。各檔可點<strong>檔名</strong>或<strong>詳情</strong>開啟全文頁 <code>/kb/p/…</code>。</p>
-  <p class="meta"><strong>LLM 摘要</strong>：僅顯示快取中已有內容（<code>outputs/.kb_group_llm_cache.json</code>、<code>outputs/.kb_file_llm_cache.json</code>），<strong>開啟本頁不會呼叫 LLM</strong>，以免影響回應時間。若無快取或內容已變更則不顯示該段。</p>
+  <p class="meta"><strong>LLM 摘要</strong>：群組「意義／使用方向／威脅對應」優先讀 <strong>PostgreSQL <code>kb_group_llm</code></strong>（有 <code>DATABASE_URL</code> 時），否則 <code>outputs/.kb_group_llm_cache.json</code>；<strong>每檔說明</strong>來自快取 <code>outputs/.kb_file_llm_cache.json</code> 之 <code>summary</code>，列表顯示至多約 <strong>200 詞</strong>（並有字元上限）。<strong>開啟本頁不會呼叫 LLM</strong>。批次：<code>…/kb_refresh_file_llm.py</code>、<code>…/kb_refresh_group_llm.py</code>（會同步寫 DB）、或 <code>…/kb_refresh_all_llm.py</code>。</p>
   {% if error %}
   <p style="color:#b00;">{{ error }}</p>
   {% endif %}
@@ -97,6 +122,13 @@
         <span class="summary-key" title="同 key 表示正規化後模板相同">{{ g.group_key }}</span>
         <span class="summary-count">{{ g.group_size }} 檔</span>
       </summary>
+      {% if g.llm_meaning or g.llm_usage_direction or g.llm_threats %}
+      <div class="kb-group-llm">
+        {% if g.llm_meaning %}<p><strong>意義</strong>：{{ g.llm_meaning }}</p>{% endif %}
+        {% if g.llm_usage_direction %}<p><strong>使用方向</strong>：{{ g.llm_usage_direction }}</p>{% endif %}
+        {% if g.llm_threats %}<p><strong>威脅對應</strong>：{{ g.llm_threats }}</p>{% endif %}
+      </div>
+      {% endif %}
       <ul class="file-list">
         {% for f in g.files %}
         <li>
@@ -106,8 +138,11 @@
             {% if kb_db_enabled %}<a href="/kb/e/{{ f.href_edit }}" style="margin-left:0.5rem;font-size:0.88rem;">編輯</a>{% endif %}
             {% if f.sequence_tags %}<span class="meta"> — {{ f.sequence_tags }}</span>{% endif %}
           </span>
-          {% if f.llm_file_summary %}
-          <span class="file-overview">{{ f.llm_file_summary }}</span>
+          {% if f.llm_file_description %}
+          <span class="file-overview" title="來自 LLM 批次產生之單檔概要（快取）">
+            <span class="llm-desc-label">LLM 說明</span>
+            {{ f.llm_file_description }}
+          </span>
           {% endif %}
         </li>
         {% endfor %}

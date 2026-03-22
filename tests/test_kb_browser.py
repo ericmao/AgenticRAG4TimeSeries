@@ -11,8 +11,9 @@ from services.mvp_ui_api import kb_browser
 
 @pytest.fixture(autouse=True)
 def _force_kb_db_off(monkeypatch: pytest.MonkeyPatch) -> None:
-    """避免本機 .env 的 KB_DB_MODE 影響純檔案列舉測試。"""
+    """避免本機 .env 的 KB_DB_MODE 影響純檔案列舉測試；並清掉 DATABASE_URL 以免誤連真實庫。"""
     monkeypatch.setenv("KB_DB_MODE", "off")
+    monkeypatch.delenv("DATABASE_URL", raising=False)
 
 
 def test_resolve_rejects_parent_segments(tmp_path: Path):
@@ -126,6 +127,86 @@ def test_enrich_group_llm_from_cache_only(
     assert groups[0].get("llm_summary") == "快取群組摘要"
 
 
+def test_enrich_group_llm_structured_without_legacy_summary(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    import json
+
+    from services.mvp_ui_api import kb_group_llm
+
+    kb = tmp_path / "kb"
+    kb.mkdir()
+    (kb / "solo.md").write_text("hello world unique\n", encoding="utf-8")
+    monkeypatch.setattr(kb_browser, "kb_root_abs", lambda _repo: kb)
+
+    groups = kb_browser.aggregate_kb_groups(tmp_path)
+    gk = groups[0]["group_key"]
+    out = tmp_path / "outputs"
+    out.mkdir()
+    (out / ".kb_group_llm_cache.json").write_text(
+        json.dumps(
+            {
+                gk: {
+                    "meaning": "意義內容",
+                    "usage_direction": "使用方向",
+                    "threats": "威脅對應",
+                }
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+
+    kb_group_llm.enrich_groups_llm_summaries(tmp_path, groups)
+    assert groups[0].get("llm_meaning") == "意義內容"
+    assert groups[0].get("llm_usage_direction") == "使用方向"
+    assert groups[0].get("llm_threats") == "威脅對應"
+    assert groups[0].get("llm_summary") == "意義內容"
+
+
+def test_enrich_group_llm_db_overrides_json_cache(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    import json
+
+    from services.mvp_ui_api import kb_group_llm
+
+    kb = tmp_path / "kb"
+    kb.mkdir()
+    (kb / "solo.md").write_text("hello world unique\n", encoding="utf-8")
+    monkeypatch.setattr(kb_browser, "kb_root_abs", lambda _repo: kb)
+
+    groups = kb_browser.aggregate_kb_groups(tmp_path)
+    gk = groups[0]["group_key"]
+    out = tmp_path / "outputs"
+    out.mkdir()
+    (out / ".kb_group_llm_cache.json").write_text(
+        json.dumps({gk: {"meaning": "json", "usage_direction": "", "threats": "", "summary": ""}}, ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+    monkeypatch.setenv("DATABASE_URL", "postgresql://unused:unused@127.0.0.1:1/agentic")
+    monkeypatch.setattr(
+        "src.storage.kb_group_llm_store.fetch_all_kb_group_llm",
+        lambda _url: {
+            gk: {
+                "meaning": "db意義",
+                "usage_direction": "db方向",
+                "threats": "db威脅",
+                "summary": "",
+                "content_fingerprint": None,
+                "model": None,
+                "updated_at": None,
+            }
+        },
+    )
+
+    kb_group_llm.enrich_groups_llm_summaries(tmp_path, groups)
+    assert groups[0].get("llm_meaning") == "db意義"
+    assert groups[0].get("llm_usage_direction") == "db方向"
+    assert groups[0].get("llm_threats") == "db威脅"
+
+
 def test_enrich_file_llm_from_cache_only(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     import hashlib
     import json
@@ -162,3 +243,31 @@ def test_read_roundtrip(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None
 
     p = kb_browser.resolve_kb_file(tmp_path, "x.md")
     assert kb_browser.read_kb_text(p) == "hello 世界"
+
+
+def test_truncate_llm_file_summary_for_display() -> None:
+    from services.mvp_ui_api.kb_file_llm import truncate_llm_file_summary_for_display
+
+    assert truncate_llm_file_summary_for_display("") == ""
+    assert truncate_llm_file_summary_for_display("  hello  \n") == "hello"
+    long = " ".join(f"w{i}" for i in range(250))
+    out = truncate_llm_file_summary_for_display(long, max_words=200)
+    assert out.endswith("…")
+    assert len(out.split()) == 200
+    big_zh = "字" * 2000
+    out2 = truncate_llm_file_summary_for_display(big_zh, max_chars=100)
+    assert len(out2) <= 101
+    assert out2.endswith("…")
+
+
+def test_kb_describer_runner_dry_run(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from src.layer_c.agents.kb_describer_agent import kb_describer_runner
+
+    kb = tmp_path / "kb"
+    kb.mkdir()
+    (kb / "x.md").write_text("# t\nbody\n", encoding="utf-8")
+    monkeypatch.setattr(kb_browser, "kb_root_abs", lambda _repo: kb)
+
+    out = kb_describer_runner({"repo_root": str(tmp_path), "dry_run": True})
+    assert out["ok"] is True
+    assert out["stats"]["dry_run_would"] >= 1

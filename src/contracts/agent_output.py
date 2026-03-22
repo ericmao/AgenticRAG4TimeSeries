@@ -11,7 +11,13 @@ from pydantic import BaseModel, Field
 class AgentOutput(BaseModel):
     """Base output shape for all agents; structured is agent-specific (e.g. HuntPlan, ResponsePlan)."""
 
-    agent_id: Literal["triage", "hunt_planner", "response_advisor"]
+    agent_id: Literal[
+        "triage",
+        "hunt_planner",
+        "response_advisor",
+        "entity_investigation",
+        "cti_correlation",
+    ]
     episode_id: str
     run_id: str
     summary: str
